@@ -1,0 +1,282 @@
+import frappe
+from frappe import _
+import requests
+import json
+import base64
+import hashlib
+import re
+import os
+from urllib.parse import urlencode
+from . import utils
+
+redirect_uri = "https://skedew.com/redirect"
+
+
+class Twitter:
+    def __init__(self, client_id=None, client_secret=None, access_token=None, refresh_token=None, scope=[], authorization_type="Bearer", content_type="json"):
+        self.base_url = "https://api.twitter.com"
+        self.auth_url = "https://twitter.com/i/oauth2/authorize"
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.scope = scope or ["tweet.read", "tweet.write", "tweet.moderate.write", "users.read", "follows.read", "follows.write", "offline.access", "space.read",
+                               "mute.read", "mute.write", "like.read", "like.write", "list.read", "list.write", "block.read", "block.write", "bookmark.read", "bookmark.write"]
+        self._access_token = access_token
+        self._refresh_token = refresh_token
+        self.authorization_type = authorization_type
+        self.content_type = content_type
+        self.state = None
+
+    def bearer(self):
+        return f"Bearer {self._access_token}"
+
+    def basic(self):
+        return f"Basic {base64.b64encode(f'{self.client_id}:{self.client_secret}'.encode('utf-8')).decode('utf-8')}"
+
+    def authorization_header(self, type=None):
+        type = type or self.authorization_type
+        return self.bearer() if type == "Bearer" else self.basic() if type == "Basic" else None
+
+    def content_type_header(self, type=None):
+        type = type or self.content_type
+        return "application/json" if type == "json" else "application/x-www-form-urlencoded" if type == "urlencoded" else None
+
+    def headers(self, authorization_type=None, content_type=None):
+        authorization_type = authorization_type or self.authorization_type
+        content_type = content_type or self.content_type
+        return {
+            "Authorization": self.authorization_header(authorization_type),
+            "Content-Type": self.content_type_header(content_type)
+        }
+
+    def verifier(self):
+        return re.sub("[^a-zA-Z0-9]+", "", base64.urlsafe_b64encode(os.urandom(30)).decode("utf-8"))
+
+    def challenge(self, verifier):
+        return base64.urlsafe_b64encode(hashlib.sha256(verifier.encode("utf-8")).digest()).decode("utf-8").replace("=", "")
+
+    def new_state(self):
+        self.state = self.verifier()
+        return self.state
+
+    def request(self, method="GET", url=None, endpoint=None, params={}, json={}, headers={}, request=True):
+        url = url or self.base_url + endpoint
+
+        authorization_type, content_type = headers.get("authorization_type"), headers.get("content_type")
+
+        headers = self.headers(authorization_type, content_type)
+
+        # Complete URL with encoded parameters
+        if method == "GET" and not request:
+            return url + "?" + urlencode(params)
+        if request:
+            return requests.request(method, url, params=params, json=json, headers=headers)
+
+    # Returns authorization URL, state, code_verifier, code_challenge, code_challenge_method
+    def authorize(self, redirect_uri, scope=[], state=None, code_verifier=None, code_challenge=None, code_challenge_method="S256"):
+        scope = scope or self.scope
+        state = state or self.new_state()
+        code_verifier = code_verifier or self.verifier()
+        code_challenge = code_challenge or self.challenge(code_verifier)
+        code_challenge_method = code_challenge_method or "S256"
+
+        params = {
+            "response_type": "code",
+            "client_id": self.client_id,
+            "redirect_uri": redirect_uri,
+            "scope": " ".join(scope),
+            "state": state,
+            "code_challenge": code_challenge,
+            "code_challenge_method": code_challenge_method
+        }
+
+        url = self.request("GET", url=self.auth_url, params=params, request=False)
+
+        return url, state, code_verifier, code_challenge, code_challenge_method
+
+    # Get access token from code
+    def token(self, code_verifier=None, code=None):
+        if not code_verifier or not code:
+            return
+
+        return self.request(
+            "POST",
+            endpoint="/2/oauth2/token",
+            params={
+                "grant_type": "authorization_code",
+                "code": code,
+                "client_id": self.client_id,
+                "code_verifier": code_verifier,
+                "redirect_uri": redirect_uri
+            },
+            headers={"authorization_type": "Basic",
+                     "content_type": "urlencoded"}
+        )
+
+    # Refresh access token
+    def refresh_token(self, token=None):
+        token = token or self._refresh_token
+        if not token:
+            return
+
+        return self.request(
+            "POST",
+            endpoint="/2/oauth2/token",
+            params={
+                "grant_type": "refresh_token",
+                "refresh_token": token,
+            },
+            headers={"authorization_type": "Basic",
+                     "content_type": "urlencoded"}
+        )
+
+
+@frappe.whitelist()
+def authorize(**args):
+    api = utils.find(args, "api")
+    if not api:
+        frappe.msgprint(_("API is empty!"))
+        return
+    doc = frappe.get_doc("API", api)
+    client_id = doc.get_password("client_id") or None
+    client_secret = doc.get_password("client_secret") or None
+    if not client_id or not client_secret:
+        frappe.msgprint(_("Client ID or Client Secret or both not found!"))
+        return
+
+    client = Twitter(client_id)
+
+    url, state, code_verifier, code_challenge, code_challenge_method = client.authorize(redirect_uri)
+
+    session_data = {
+        "state": state,
+        "user": frappe.session.user,
+        "API": api,
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "code_verifier": code_verifier,
+        "code_challenge": code_challenge,
+        "code_challenge_method": code_challenge_method,
+    }
+
+    # Save session data to frappe cache so that it can be used later for verification
+    frappe.cache().set_value(state, json.dumps(session_data))
+
+    return {"state": state, "authorization_url": url}
+
+
+@frappe.whitelist()
+def callback(**args):
+    state, code = args.get("state"), args.get("code")
+    if state and code:
+        data = frappe.cache().get_value(state)
+        if data:
+            session = json.loads(data)
+            api = session.get("API")
+            doc = frappe.get_doc("API", api)
+            client_id = session.get("client_id") or doc.get_password("client_id") or None
+            client_secret = session.get("client_secret") or doc.get_password("client_secret") or None
+            code_verifier = session.get("code_verifier")
+            client = Twitter(client_id, client_secret)
+            response = client.token(code_verifier=code_verifier, code=code)
+
+            if response.status_code == 200:
+                response = response.json()
+                if "access_token" not in response:
+                    frappe.throw("Access token not received. Authorization failed.")
+
+                access_token, refresh_token = response.get("access_token"), response.get("refresh_token")
+
+                doc = frappe.get_doc({
+                    "doctype": "Agent",
+                    "api": api,
+                    "access_token": access_token,
+                    "refresh_token": refresh_token
+                })
+
+                doc.insert()
+
+                frappe.db.commit()
+
+                redirect_url = f"/app/agent/{doc.name}"
+                frappe.local.response.update({"type": "redirect", "location": redirect_url, "message": f"Redirecting to Agent {doc.name}"})
+    return args
+
+
+@frappe.whitelist()
+def refresh_token(**args):
+    name = utils.find(args, "name")
+    if not name:
+        frappe.msgprint(_("Agent name is empty!"))
+        return
+
+    doc = frappe.get_doc("Agent", name)
+    token = doc.get_password("refresh_token") or None
+    api = doc.get("api")
+    doc = frappe.get_doc("API", api)
+    client_id = doc.get_password("client_id") or None
+    client_secret = doc.get_password("client_secret") or None
+
+    if not client_id or not client_secret:
+        frappe.msgprint(_("Client ID or Client Secret or both not found!"))
+        return
+
+    client = Twitter(client_id, client_secret)
+
+    response = client.refresh_token(token)
+
+    if response.status_code == 200:
+        response = response.json()
+        access_token, refresh_token = response.get("access_token"), response.get("refresh_token")
+        frappe.get_doc("Agent", name).update({"access_token": access_token, "refresh_token": refresh_token}).save()
+        frappe.db.commit()
+
+    return token
+
+
+@frappe.whitelist()
+def profile(**args):
+    name = utils.find(args, "name")
+    doc = frappe.get_doc("Agent", name)
+    token = doc.get_password("access_token") or None
+
+    client = Twitter(access_token=token)
+    response = client.request(
+        "GET",
+        endpoint="/2/users/me",
+        params={"user.fields": "created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,verified_type,withheld"},
+        headers={"authorization_type": "Bearer", "content_type": "json"}
+    )
+
+    profile = response.json().get("data")
+
+    frappe.get_doc("Agent", name).update({"username": profile.get("username"), "picture": profile.get("profile_image_url")}).save()
+
+    frappe.db.commit()
+
+    return response
+
+
+@frappe.whitelist()
+def send(**args):
+    name = utils.find(args, "name")
+    agent = utils.find(args, "agent") or frappe.get_doc("Agent", name)
+    text = utils.find(args, "text")
+    token = agent.get_password("access_token") or None
+    client = Twitter(access_token=token)
+
+    linked_external_id = utils.find(args, "linked_external_id")
+
+    params = {"text": text}
+    if linked_external_id:
+        params.update({"reply": {
+            "in_reply_to_tweet_id": linked_external_id,
+        }})
+
+    response = client.request(
+        "POST",
+        endpoint="/2/tweets",
+        json=params,
+        headers={"authorization_type": "Bearer", "content_type": "json"}
+    )
+
+    return response

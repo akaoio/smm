@@ -1,0 +1,32 @@
+{
+  "actions": [],
+  "creation": "2023-07-07 16:01:28.414928",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": ["agent_group"],
+  "fields": [
+    {
+      "fieldname": "agent_group",
+      "fieldtype": "Link",
+      "in_filter": 1,
+      "in_list_view": 1,
+      "in_preview": 1,
+      "label": "Agent Group",
+      "options": "Agent Group",
+      "reqd": 1
+    }
+  ],
+  "index_web_pages_for_search": 1,
+  "istable": 1,
+  "links": [],
+  "modified": "2023-08-03 12:13:23.521460",
+  "modified_by": "Administrator",
+  "module": "SMM",
+  "name": "Agent Group Item",
+  "owner": "Administrator",
+  "permissions": [],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}

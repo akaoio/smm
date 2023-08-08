@@ -1,0 +1,144 @@
+import frappe
+from frappe import _
+import random
+import json
+import requests
+from ..libs import utils
+
+
+apis = frappe.db.get_all("API", filters={"provider": "ChatGPT"})
+api = random.choice(apis).name
+doc = frappe.get_doc("API", api)
+token = doc.get_password("token") if doc.get("token") else None
+
+
+class ChatGPT:
+    def __init__(self, token):
+        self.base_url = "https://api.openai.com"
+        self.token = token
+
+    def headers(self):
+        return {
+            "Authorization": f"Bearer {self.token}",
+            "Content-Type": "application/json",
+        }
+
+    def request(self, method="POST", url=None, endpoint=None, data={}):
+        url = url or self.base_url + endpoint
+        response = requests.request(
+            method,
+            url,
+            headers=self.headers(),
+            data=json.dumps(data)
+        )
+        return response
+
+
+@frappe.whitelist()
+def generate_content(**args):
+    mechanism = utils.find(args, "name") or utils.find(args, "mechanism")
+
+    doc = frappe.get_doc("Content Mechanism", mechanism)
+    if doc.get("enabled") == 0:
+        frappe.msgprint(_(f"Content Mechanism {mechanism} is disabled."))
+        return
+
+    feeds = {}
+    prompts = []
+
+    # If given a linked Network Activity, try to get Content of that Activity and generate responsive Contents to it.
+    activity = utils.find(args, "activity")
+    if activity:
+        linked_activity_doc = frappe.get_doc("Network Activity", activity)
+        if linked_activity_doc.get("content"):
+            linked_content_doc = frappe.get_doc("Content", linked_activity_doc.get("content"))
+            if linked_content_doc.get("description"):
+                feeds.update({linked_content_doc.get("name"): {"title": linked_content_doc.get("title"), "description": linked_content_doc.get("description")}})
+
+    length = doc.get("length")
+
+    feed_provider_list = doc.get("feed_provider")
+
+    feed_list = doc.get("feed")
+
+    prompt_list = doc.get("prompt")
+
+    for item in feed_provider_list:
+        docs = frappe.db.get_all("Feed", filters={"provider": item.get("feed_provider")}, order_by="creation desc", limit_start=0, limit_page_length=item.get("limit"))
+        for doc in docs:
+            doc = frappe.get_doc("Feed", doc.get("name"))
+            feeds.update({doc.get("name"): {"title": doc.get("title"), "description": doc.get("description")}})
+
+    for item in feed_list:
+        doc = frappe.get_doc("Feed", item.get("feed"))
+        feeds.update({doc.get("name"): {"title": doc.get("title"), "description": doc.get("description")}})
+
+    for item in prompt_list:
+        doc = frappe.get_doc("Prompt", item.get("prompt"))
+        prompts.append({"role": "user", "content": doc.get("description")})
+
+    if len(feeds) > 0:
+        prompts.append({"role": "user", "content": json.dumps({"DATA": feeds})})
+
+    client = ChatGPT(token)
+
+    # description = {
+    #     "type": "string",
+    #     "description": "Description of the content."
+    # }
+    # if length and length > 0:
+    #     description.update({"maxLength": length})
+    #     description.update({"description": description.get("description") + f" Max length is {length}."})
+
+    data = {
+        "model": "gpt-3.5-turbo",
+        "messages": prompts,
+        "functions": [
+            {
+                "name": "generate_content",
+                "description": "Create a content from given prompts and DATA. Returns `title` and `description`.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "title": {
+                            "type": "string",
+                            "description": "The shortest version of the content."
+                        },
+                        "description": {
+                            "type": "string",
+                            "description": "Content Description." + f" Maximum number of characters is {length}." if length and length > 0 else ""
+                        },
+                    },
+                    "required": ["title", "description"]
+                }
+            }
+        ]
+    }
+
+    response = client.request(endpoint="/v1/chat/completions", data=data)
+    data = response.json()
+    error = data.get("error") or {}
+    message = error.get("message") or {}
+
+    if response.status_code != 200 and message:
+        frappe.msgprint(_(message))
+        return response
+
+    if response.status_code == 200:
+        message = random.choice(data.get("choices")).get("message").get("function_call").get("arguments")
+        message = json.loads(message)
+        title = message.get("title")
+        title = utils.remove_mentions(title)
+        title = utils.remove_quotes(title)
+        description = message.get("description")
+        description = utils.remove_mentions(description)
+        description = utils.remove_quotes(description)
+        doc = frappe.get_doc({
+            "doctype": "Content",
+            "mechanism": mechanism,
+            "title": title,
+            "description": description if len(description) > len(title) else title,
+        })
+        doc.insert()
+        frappe.db.commit()
+        return doc

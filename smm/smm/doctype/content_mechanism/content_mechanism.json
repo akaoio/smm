@@ -1,0 +1,95 @@
+{
+  "actions": [
+    {
+      "action": "smm.libs.chatgpt.generate_content",
+      "action_type": "Server Action",
+      "label": "Generate Content"
+    }
+  ],
+  "creation": "2023-07-15 00:35:15.689317",
+  "default_view": "List",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "enabled",
+    "title",
+    "feed_provider",
+    "feed",
+    "prompt",
+    "length"
+  ],
+  "fields": [
+    {
+      "default": "0",
+      "fieldname": "enabled",
+      "fieldtype": "Check",
+      "label": "Enabled"
+    },
+    {
+      "fieldname": "feed",
+      "fieldtype": "Table",
+      "label": "Feeds",
+      "options": "Feed Item"
+    },
+    {
+      "description": "These are the commands that will be provided to the AI Content Generator",
+      "fieldname": "prompt",
+      "fieldtype": "Table",
+      "label": "Prompts",
+      "options": "Prompt Item",
+      "reqd": 1
+    },
+    {
+      "fieldname": "feed_provider",
+      "fieldtype": "Table",
+      "label": "Feed Providers",
+      "options": "Feed Provider Item"
+    },
+    {
+      "bold": 1,
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "label": "Title",
+      "reqd": 1
+    },
+    {
+      "default": "250",
+      "description": "The maximum number of letters of the content to be generated",
+      "fieldname": "length",
+      "fieldtype": "Int",
+      "in_filter": 1,
+      "in_list_view": 1,
+      "in_preview": 1,
+      "in_standard_filter": 1,
+      "label": "Length"
+    }
+  ],
+  "index_web_pages_for_search": 1,
+  "links": [],
+  "modified": "2023-07-21 23:33:28.253785",
+  "modified_by": "Administrator",
+  "module": "SMM",
+  "name": "Content Mechanism",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "show_title_field_in_link": 1,
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": [],
+  "title_field": "title"
+}

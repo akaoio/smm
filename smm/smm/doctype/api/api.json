@@ -1,0 +1,88 @@
+{
+  "actions": [],
+  "creation": "2023-07-07 12:44:30.399867",
+  "default_view": "List",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "provider",
+    "username",
+    "token",
+    "client_id",
+    "client_secret"
+  ],
+  "fields": [
+    {
+      "columns": 1,
+      "depends_on": "eval: ['Telegram'].includes(doc.provider)",
+      "fieldname": "username",
+      "fieldtype": "Data",
+      "in_filter": 1,
+      "in_list_view": 1,
+      "in_preview": 1,
+      "in_standard_filter": 1,
+      "label": "Username",
+      "mandatory_depends_on": "eval: ['Telegram'].includes(doc.provider)",
+      "search_index": 1
+    },
+    {
+      "depends_on": "eval: ['Telegram','ChatGPT'].includes(doc.provider)",
+      "fieldname": "token",
+      "fieldtype": "Password",
+      "label": "Token",
+      "mandatory_depends_on": "eval: ['Telegram','ChatGPT'].includes(doc.provider)"
+    },
+    {
+      "depends_on": "eval: ['Twitter'].includes(doc.provider)",
+      "fieldname": "client_id",
+      "fieldtype": "Password",
+      "label": "Client ID",
+      "mandatory_depends_on": "eval: ['Twitter'].includes(doc.provider)"
+    },
+    {
+      "depends_on": "eval: ['Twitter'].includes(doc.provider)",
+      "fieldname": "client_secret",
+      "fieldtype": "Password",
+      "label": "Client Secret",
+      "mandatory_depends_on": "eval: ['Twitter'].includes(doc.provider)"
+    },
+    {
+      "fieldname": "provider",
+      "fieldtype": "Select",
+      "in_filter": 1,
+      "in_list_view": 1,
+      "in_preview": 1,
+      "in_standard_filter": 1,
+      "label": "Provider",
+      "options": "\nTelegram\nFacebook\nTwitter\nChatGPT",
+      "reqd": 1
+    }
+  ],
+  "index_web_pages_for_search": 1,
+  "links": [],
+  "modified": "2023-07-18 00:14:13.103870",
+  "modified_by": "Administrator",
+  "module": "SMM",
+  "name": "API",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "search_fields": "provider,username",
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": [],
+  "title_field": "provider"
+}

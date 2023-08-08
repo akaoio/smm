@@ -1,0 +1,43 @@
+{
+  "actions": [],
+  "creation": "2023-07-15 01:02:17.819867",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": ["feed_provider", "limit"],
+  "fields": [
+    {
+      "fieldname": "feed_provider",
+      "fieldtype": "Link",
+      "in_filter": 1,
+      "in_list_view": 1,
+      "in_preview": 1,
+      "label": "Feed Provider",
+      "options": "Feed Provider",
+      "reqd": 1
+    },
+    {
+      "columns": 1,
+      "description": "The maximum number of Feed entries to be collected from this Feed Provider.",
+      "fieldname": "limit",
+      "fieldtype": "Int",
+      "in_filter": 1,
+      "in_list_view": 1,
+      "in_preview": 1,
+      "label": "Limit",
+      "reqd": 1
+    }
+  ],
+  "index_web_pages_for_search": 1,
+  "istable": 1,
+  "links": [],
+  "modified": "2023-08-03 12:14:38.030941",
+  "modified_by": "Administrator",
+  "module": "SMM",
+  "name": "Feed Provider Item",
+  "owner": "Administrator",
+  "permissions": [],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}

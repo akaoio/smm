@@ -1,0 +1,145 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"1e7SPreQbw\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Social Management</span>\",\"col\":12}},{\"id\":\"kd2zDikHA_\",\"type\":\"card\",\"data\":{\"card_name\":\"Integrations\",\"col\":4}},{\"id\":\"FI_J7IOaBu\",\"type\":\"card\",\"data\":{\"card_name\":\"Management\",\"col\":4}}]",
+ "creation": "2023-07-07 13:18:48.470781",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "users",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "SMM",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Management",
+   "link_count": 6,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Feed",
+   "link_count": 0,
+   "link_to": "Feed",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Prompt",
+   "link_count": 0,
+   "link_to": "Prompt",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Content Mechanism",
+   "link_count": 0,
+   "link_to": "Content Mechanism",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Content",
+   "link_count": 0,
+   "link_to": "Content",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Network Activity Plan",
+   "link_count": 0,
+   "link_to": "Network Activity Plan",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Network Activity",
+   "link_count": 0,
+   "link_to": "Network Activity",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Integrations",
+   "link_count": 4,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "API",
+   "link_count": 0,
+   "link_to": "API",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Agent",
+   "link_count": 0,
+   "link_to": "Agent",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Agent Group",
+   "link_count": 0,
+   "link_to": "Agent Group",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Feed Provider",
+   "link_count": 0,
+   "link_to": "Feed Provider",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2023-08-08 11:20:53.004027",
+ "modified_by": "Administrator",
+ "module": "SMM",
+ "name": "SMM",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 4.0,
+ "shortcuts": [],
+ "title": "SMM"
+}
