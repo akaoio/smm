@@ -5,8 +5,8 @@ import datetime
 
 
 fields_map = {
-    "mechanism": {"name": "mechanism", "linked_doctype": "Content Mechanism", "linked_field": "content_mechanism", "type": "array"},
-    "activity": {"name": "activity", "linked_doctype": "Network Activity", "linked_field": "activity", "type": "array"}
+    "mechanism": {"link_field": "mechanisms", "name": "mechanism", "linked_doctype": "Content Mechanism", "data_field": "content_mechanism", "type": "array"},
+    "activity": {"link_field": "activities", "name": "activity", "linked_doctype": "Network Activity", "data_field": "activity", "type": "array"}
 }
 
 requirements_map = {
@@ -49,11 +49,11 @@ class ActivityPlan:
         self.agents = set()
 
         # Get agents
-        self.agents.update(frappe.get_doc("Agent", item.get("agent")) for item in self.doc.get("agent"))
+        self.agents.update(frappe.get_doc("Agent", item.get("agent")) for item in self.doc.get("agents"))
 
         # Get agents from agent groups
-        for item in self.doc.get("agent_group"):
-            agent_group = frappe.get_doc("Agent Group", item.get("agent_group")).get("agent")
+        for item in self.doc.get("agent_groups"):
+            agent_group = frappe.get_doc("Agent Group", item.get("agent_group")).get("agents")
             self.agents.update(frappe.get_doc("Agent", agent.get("agent")) for agent in agent_group)
 
     def schedule(self):
@@ -70,10 +70,10 @@ class ActivityPlan:
                     map_item = fields_map.get(item)
                     if map_item is not None:
                         field = []
-                        if map_item.get("type") == "array" and map_item.get("linked_doctype") and map_item.get("linked_field"):
+                        if map_item.get("type") == "array" and map_item.get("linked_doctype") and map_item.get("data_field"):
                             # Linked Item is an Item of a Table field which is linked to a child Doctype
-                            for linked_item in self.doc.get(map_item.get("name")):
-                                linked_item = frappe.get_doc(map_item.get("linked_doctype"), linked_item.get(map_item.get("linked_field")))
+                            for linked_item in self.doc.get(map_item.get("link_field")):
+                                linked_item = frappe.get_doc(map_item.get("linked_doctype"), linked_item.get(map_item.get("data_field")))
                                 # If `enabled` field doesn't exist or is 1, append the linked item to the array
                                 if linked_item.get("enabled") is None or linked_item.get("enabled") == 1:
                                     field.append(linked_item)

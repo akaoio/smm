@@ -57,11 +57,11 @@ def generate_content(**args):
 
     length = doc.get("length")
 
-    feed_provider_list = doc.get("feed_provider")
+    feed_provider_list = doc.get("feed_providers")
 
-    feed_list = doc.get("feed")
+    feed_list = doc.get("feeds")
 
-    prompt_list = doc.get("prompt")
+    prompt_list = doc.get("prompts")
 
     for item in feed_provider_list:
         docs = frappe.db.get_all("Feed", filters={"provider": item.get("feed_provider")}, order_by="creation desc", limit_start=0, limit_page_length=item.get("limit"))

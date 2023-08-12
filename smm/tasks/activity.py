@@ -37,8 +37,8 @@ def cast_activities():
     list = frappe.db.get_list(
         "Network Activity",
         filters=[
-            # ["schedule", ">=", start_datetime],
-            # ["schedule", "<=", current_datetime],
+            ["schedule", ">=", start_datetime],
+            ["schedule", "<=", current_datetime],
             ["status", "=", "Pending"],
             ["content", "!=", ""]
         ],
