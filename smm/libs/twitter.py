@@ -132,6 +132,7 @@ class Twitter:
 
 @frappe.whitelist()
 def authorize(**args):
+    name = utils.find(args, "name")
     api = utils.find(args, "api")
     if not api:
         frappe.msgprint(_("API is empty!"))
@@ -148,6 +149,7 @@ def authorize(**args):
     url, state, code_verifier, code_challenge, code_challenge_method = client.authorize(redirect_uri)
 
     session_data = {
+        "name": name,
         "state": state,
         "user": frappe.session.user,
         "API": api,
@@ -166,11 +168,18 @@ def authorize(**args):
 
 @frappe.whitelist()
 def callback(**args):
-    state, code = args.get("state"), args.get("code")
+    error, state, code = args.get("error"), args.get("state"), args.get("code")
+    if error:
+        redirect_url = f"/app/agent"
+        frappe.local.response.update({"type": "redirect", "location": redirect_url, "message": f"Redirecting to Agent"})
+        # if error == "access_denied":
     if state and code:
         data = frappe.cache().get_value(state)
+        # Delete frappe cache to release memory
+        frappe.cache().delete_value(state)
         if data:
             session = json.loads(data)
+            name = session.get("name")
             api = session.get("API")
             doc = frappe.get_doc("API", api)
             client_id = session.get("client_id") or doc.get_password("client_id") or None
@@ -184,16 +193,22 @@ def callback(**args):
                 if "access_token" not in response:
                     frappe.throw("Access token not received. Authorization failed.")
 
-                access_token, refresh_token = response.get("access_token"), response.get("refresh_token")
+                tokens = {
+                    "access_token": response.get("access_token"),
+                    "refresh_token": response.get("refresh_token")
+                }
 
-                doc = frappe.get_doc({
-                    "doctype": "Agent",
-                    "api": api,
-                    "access_token": access_token,
-                    "refresh_token": refresh_token
-                })
-
-                doc.insert()
+                if name:
+                    doc = frappe.get_doc("Agent", name)
+                    doc.update(tokens)
+                    doc.save()
+                else:
+                    doc = frappe.get_doc({
+                        "doctype": "Agent",
+                        "api": api,
+                        **tokens
+                    })
+                    doc.insert()
 
                 frappe.db.commit()
 
