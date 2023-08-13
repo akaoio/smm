@@ -1,5 +1,5 @@
 import frappe
-from ..libs import activity, utils
+from ..libs import activity
 import datetime
 
 

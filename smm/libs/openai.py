@@ -6,14 +6,8 @@ import requests
 from ..libs import utils
 
 
-apis = frappe.db.get_all("API", filters={"provider": "ChatGPT"})
-api = random.choice(apis).name
-doc = frappe.get_doc("API", api)
-token = doc.get_password("token") if doc.get("token") else None
-
-
-class ChatGPT:
-    def __init__(self, token):
+class OpenAI:
+    def __init__(self, token=None):
         self.base_url = "https://api.openai.com"
         self.token = token
 
@@ -80,15 +74,17 @@ def generate_content(**args):
     if len(feeds) > 0:
         prompts.append({"role": "user", "content": json.dumps({"DATA": feeds})})
 
-    client = ChatGPT(token)
+    # Temporarily get random API. This needs to be fixed.
+    apis = frappe.db.get_all("API", filters={"provider": "OpenAI"})
+    if (len(apis) > 0):
+        api = random.choice(apis).name
+        doc = frappe.get_doc("API", api)
+        token = doc.get_password("token") if doc.get("token") else None
 
-    # description = {
-    #     "type": "string",
-    #     "description": "Description of the content."
-    # }
-    # if length and length > 0:
-    #     description.update({"maxLength": length})
-    #     description.update({"description": description.get("description") + f" Max length is {length}."})
+    if not token:
+        return
+
+    client = OpenAI(token)
 
     data = {
         "model": "gpt-3.5-turbo",

@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from . import utils, x, telegram, chatgpt
+from . import utils, x, telegram, openai
 import datetime
 
 
@@ -213,7 +213,7 @@ def generate_content(**args):
     for field in required_fields:
         filters[field] = doc.get(field)
 
-    content = chatgpt.generate_content(**filters)
+    content = openai.generate_content(**filters)
     if content and content.name:
         doc.update({"content": content.name}).save()
         frappe.db.commit()
