@@ -7,7 +7,7 @@ app_license = "MIT"
 
 scheduler_events = {
     "all": [
-        "smm.tasks.twitter.refresh_tokens",
+        "smm.tasks.x.refresh_tokens",
         "smm.tasks.rss.fetch_all",
         "smm.tasks.activity.process_activities",
         "smm.tasks.activity.cast_activities"

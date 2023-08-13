@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from . import utils, twitter, telegram, chatgpt
+from . import utils, x, telegram, chatgpt
 import datetime
 
 
@@ -248,7 +248,7 @@ def cast(**args):
 
     clients = {
         "Telegram": telegram,
-        "Twitter": twitter
+        "X": x
     }
     client = clients.get(provider)
 
@@ -276,7 +276,7 @@ def cast(**args):
     if response.status_code in [200, 201]:
         # The request is successful, now try to get the external id
         doc.update({"status": "Success"})
-        if provider == "Twitter":
+        if provider == "X":
             external_id = data.get("data").get("id")
         elif provider == "Telegram":
             external_id = data.get("result").get("message_id")

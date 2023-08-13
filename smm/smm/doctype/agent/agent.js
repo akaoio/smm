@@ -2,9 +2,9 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Agent", {
-  authorize_twitter: (form) => {
+  authorize_x: (form) => {
     frappe.call({
-      method: "smm.libs.twitter.authorize",
+      method: "smm.libs.x.authorize",
       args: form.selected_doc,
       callback: (response) => {
         const { authorization_url } = response.message;

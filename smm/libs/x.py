@@ -9,13 +9,14 @@ import os
 from urllib.parse import urlencode
 from . import utils
 
-redirect_uri = "https://skedew.com/redirect"
+
+redirect_uri = frappe.local.request.url_root + "api/method/smm.libs.x.callback"
 
 
-class Twitter:
+class X:
     def __init__(self, client_id=None, client_secret=None, access_token=None, refresh_token=None, scope=[], authorization_type="Bearer", content_type="json"):
-        self.base_url = "https://api.twitter.com"
-        self.auth_url = "https://twitter.com/i/oauth2/authorize"
+        self.base_url = "https://api.x.com"
+        self.auth_url = "https://x.com/i/oauth2/authorize"
         self.client_id = client_id
         self.client_secret = client_secret
         self.scope = scope or ["tweet.read", "tweet.write", "tweet.moderate.write", "users.read", "follows.read", "follows.write", "offline.access", "space.read",
@@ -144,7 +145,7 @@ def authorize(**args):
         frappe.msgprint(_("Client ID or Client Secret or both not found!"))
         return
 
-    client = Twitter(client_id)
+    client = X(client_id)
 
     url, state, code_verifier, code_challenge, code_challenge_method = client.authorize(redirect_uri)
 
@@ -185,7 +186,7 @@ def callback(**args):
             client_id = session.get("client_id") or doc.get_password("client_id") or None
             client_secret = session.get("client_secret") or doc.get_password("client_secret") or None
             code_verifier = session.get("code_verifier")
-            client = Twitter(client_id, client_secret)
+            client = X(client_id, client_secret)
             response = client.token(code_verifier=code_verifier, code=code)
 
             if response.status_code == 200:
@@ -235,7 +236,7 @@ def refresh_token(**args):
         frappe.msgprint(_("Client ID or Client Secret or both not found!"))
         return
 
-    client = Twitter(client_id, client_secret)
+    client = X(client_id, client_secret)
 
     response = client.refresh_token(token)
 
@@ -254,7 +255,7 @@ def profile(**args):
     doc = frappe.get_doc("Agent", name)
     token = doc.get_password("access_token") or None
 
-    client = Twitter(access_token=token)
+    client = X(access_token=token)
     response = client.request(
         "GET",
         endpoint="/2/users/me",
@@ -277,7 +278,7 @@ def send(**args):
     agent = utils.find(args, "agent") or frappe.get_doc("Agent", name)
     text = utils.find(args, "text")
     token = agent.get_password("access_token") or None
-    client = Twitter(access_token=token)
+    client = X(access_token=token)
 
     linked_external_id = utils.find(args, "linked_external_id")
 

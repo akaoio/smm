@@ -1,12 +1,12 @@
 {
   "actions": [
     {
-      "action": "smm.libs.twitter.profile",
+      "action": "smm.libs.x.profile",
       "action_type": "Server Action",
       "label": "Get Profile"
     },
     {
-      "action": "smm.libs.twitter.refresh_token",
+      "action": "smm.libs.x.refresh_token",
       "action_type": "Server Action",
       "label": "Refresh Token"
     }
@@ -20,7 +20,7 @@
     "title",
     "api",
     "provider",
-    "authorize_twitter",
+    "authorize_x",
     "username",
     "picture",
     "access_token",
@@ -36,27 +36,27 @@
       "reqd": 1
     },
     {
-      "depends_on": "eval: doc.provider === \"Twitter\"",
-      "fieldname": "authorize_twitter",
+      "depends_on": "eval: doc.provider === \"X\"",
+      "fieldname": "authorize_x",
       "fieldtype": "Button",
-      "label": "Authorize Twitter"
+      "label": "Authorize X"
     },
     {
-      "depends_on": "eval: doc.provider === \"Twitter\"",
+      "depends_on": "eval: doc.provider === \"X\"",
       "fieldname": "access_token",
       "fieldtype": "Password",
       "label": "Access Token",
       "length": 500
     },
     {
-      "depends_on": "eval: doc.provider === \"Twitter\"",
+      "depends_on": "eval: doc.provider === \"X\"",
       "fieldname": "refresh_token",
       "fieldtype": "Password",
       "label": "Refresh Token",
       "length": 500
     },
     {
-      "depends_on": "eval: [\"Telegram\", \"Twitter\"].includes(doc.provider)",
+      "depends_on": "eval: [\"Telegram\", \"X\"].includes(doc.provider)",
       "fieldname": "username",
       "fieldtype": "Data",
       "in_filter": 1,
