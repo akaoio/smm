@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"1e7SPreQbw\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Social Management</span>\",\"col\":12}},{\"id\":\"kd2zDikHA_\",\"type\":\"card\",\"data\":{\"card_name\":\"Integrations\",\"col\":4}},{\"id\":\"FI_J7IOaBu\",\"type\":\"card\",\"data\":{\"card_name\":\"Management\",\"col\":4}}]",
+ "content": "[{\"id\":\"1e7SPreQbw\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Social Media Management</span>\",\"col\":12}},{\"id\":\"kd2zDikHA_\",\"type\":\"card\",\"data\":{\"card_name\":\"Integrations\",\"col\":4}},{\"id\":\"FI_J7IOaBu\",\"type\":\"card\",\"data\":{\"card_name\":\"Management\",\"col\":4}}]",
  "creation": "2023-07-07 13:18:48.470781",
  "custom_blocks": [],
  "docstatus": 0,
@@ -129,7 +129,7 @@
    "type": "Link"
   }
  ],
- "modified": "2023-08-08 11:20:53.004027",
+ "modified": "2023-08-13 11:55:22.250741",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "SMM",

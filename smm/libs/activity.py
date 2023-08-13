@@ -170,6 +170,7 @@ class ActivityPlan:
                     # Generate activity
                     frappe.get_doc({
                         "doctype": "Network Activity",
+                        "enabled": True,
                         "plan": self.name,
                         "agent": agent.name,
                         "schedule": schedule_datetime,

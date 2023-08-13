@@ -1,209 +1,212 @@
 {
-  "actions": [
-    {
-      "action": "smm.libs.activity.generate_content",
-      "action_type": "Server Action",
-      "label": "Generate Content"
-    },
-    {
-      "action": "smm.libs.activity.cast",
-      "action_type": "Server Action",
-      "label": "Cast"
-    }
-  ],
-  "creation": "2023-07-16 23:27:45.320640",
-  "default_view": "List",
-  "doctype": "DocType",
-  "editable_grid": 1,
-  "engine": "InnoDB",
-  "field_order": [
-    "enabled",
-    "title",
-    "status",
-    "agent",
-    "plan",
-    "activity",
-    "schedule",
-    "type",
-    "mechanism",
-    "content",
-    "statistics",
-    "external_id",
-    "statistics_column_1",
-    "like",
-    "statistics_column_2",
-    "share",
-    "statistics_column_3",
-    "quote",
-    "geek",
-    "payload",
-    "response",
-    "response_status"
-  ],
-  "fields": [
-    {
-      "fieldname": "plan",
-      "fieldtype": "Link",
-      "in_list_view": 1,
-      "label": "Network Activity Plan",
-      "options": "Network Activity Plan"
-    },
-    {
-      "fieldname": "payload",
-      "fieldtype": "JSON",
-      "label": "Payload"
-    },
-    {
-      "fieldname": "agent",
-      "fieldtype": "Link",
-      "in_filter": 1,
-      "in_list_view": 1,
-      "in_preview": 1,
-      "label": "Agent",
-      "options": "Agent",
-      "reqd": 1
-    },
-    {
-      "fieldname": "response",
-      "fieldtype": "JSON",
-      "label": "Response"
-    },
-    {
-      "fieldname": "content",
-      "fieldtype": "Link",
-      "label": "Content",
-      "options": "Content"
-    },
-    {
-      "fieldname": "like",
-      "fieldtype": "Int",
-      "in_preview": 1,
-      "label": "Likes"
-    },
-    {
-      "fieldname": "share",
-      "fieldtype": "Int",
-      "in_preview": 1,
-      "label": "Shares"
-    },
-    {
-      "fieldname": "quote",
-      "fieldtype": "Int",
-      "in_preview": 1,
-      "label": "Quotes"
-    },
-    {
-      "fieldname": "external_id",
-      "fieldtype": "Data",
-      "label": "External ID"
-    },
-    {
-      "fieldname": "statistics",
-      "fieldtype": "Section Break",
-      "label": "Statistics"
-    },
-    {
-      "fieldname": "statistics_column_1",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "statistics_column_2",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "statistics_column_3",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "schedule",
-      "fieldtype": "Datetime",
-      "in_filter": 1,
-      "in_list_view": 1,
-      "in_preview": 1,
-      "label": "Schedule",
-      "reqd": 1
-    },
-    {
-      "fieldname": "response_status",
-      "fieldtype": "Int",
-      "label": "Response Status"
-    },
-    {
-      "fieldname": "mechanism",
-      "fieldtype": "Link",
-      "label": "Content Mechanism",
-      "options": "Content Mechanism"
-    },
-    {
-      "collapsible": 1,
-      "fieldname": "geek",
-      "fieldtype": "Section Break",
-      "label": "Geek"
-    },
-    {
-      "fetch_from": "plan.activity_type",
-      "fieldname": "type",
-      "fieldtype": "Data",
-      "in_filter": 1,
-      "in_list_view": 1,
-      "in_preview": 1,
-      "label": "Activity Type",
-      "reqd": 1
-    },
-    {
-      "fieldname": "status",
-      "fieldtype": "Select",
-      "in_filter": 1,
-      "in_list_view": 1,
-      "in_preview": 1,
-      "label": "Status",
-      "options": "Pending\nSuccess\nFailed",
-      "reqd": 1
-    },
-    {
-      "description": "The Network Activity which this Network Activity is linked to. Linked Network Activity properties are used to Generate Content or to Cast for this Network Activity.",
-      "fieldname": "activity",
-      "fieldtype": "Link",
-      "label": "Linked Activity",
-      "options": "Network Activity"
-    },
-    {
-      "fieldname": "title",
-      "fieldtype": "Data",
-      "label": "Title",
-      "length": 500
-    },
-    {
-      "default": "0",
-      "fieldname": "enabled",
-      "fieldtype": "Check",
-      "label": "Enabled"
-    }
-  ],
-  "index_web_pages_for_search": 1,
-  "links": [],
-  "modified": "2023-08-03 13:16:24.528127",
-  "modified_by": "Administrator",
-  "module": "SMM",
-  "name": "Network Activity",
-  "owner": "Administrator",
-  "permissions": [
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "System Manager",
-      "share": 1,
-      "write": 1
-    }
-  ],
-  "show_title_field_in_link": 1,
-  "sort_field": "schedule",
-  "sort_order": "DESC",
-  "states": [],
-  "title_field": "title"
+ "actions": [
+  {
+   "action": "smm.libs.activity.generate_content",
+   "action_type": "Server Action",
+   "label": "Generate Content"
+  },
+  {
+   "action": "smm.libs.activity.cast",
+   "action_type": "Server Action",
+   "label": "Cast"
+  }
+ ],
+ "creation": "2023-07-16 23:27:45.320640",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "title",
+  "status",
+  "agent",
+  "plan",
+  "activity",
+  "schedule",
+  "type",
+  "mechanism",
+  "content",
+  "statistics",
+  "external_id",
+  "statistics_column_1",
+  "like",
+  "statistics_column_2",
+  "share",
+  "statistics_column_3",
+  "quote",
+  "geek",
+  "payload",
+  "response",
+  "response_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "plan",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Network Activity Plan",
+   "options": "Network Activity Plan"
+  },
+  {
+   "fieldname": "payload",
+   "fieldtype": "JSON",
+   "label": "Payload"
+  },
+  {
+   "fieldname": "agent",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Agent",
+   "options": "Agent",
+   "reqd": 1
+  },
+  {
+   "fieldname": "response",
+   "fieldtype": "JSON",
+   "label": "Response"
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Link",
+   "label": "Content",
+   "options": "Content"
+  },
+  {
+   "fieldname": "like",
+   "fieldtype": "Int",
+   "in_preview": 1,
+   "label": "Likes"
+  },
+  {
+   "fieldname": "share",
+   "fieldtype": "Int",
+   "in_preview": 1,
+   "label": "Shares"
+  },
+  {
+   "fieldname": "quote",
+   "fieldtype": "Int",
+   "in_preview": 1,
+   "label": "Quotes"
+  },
+  {
+   "fieldname": "external_id",
+   "fieldtype": "Data",
+   "label": "External ID"
+  },
+  {
+   "fieldname": "statistics",
+   "fieldtype": "Section Break",
+   "label": "Statistics"
+  },
+  {
+   "fieldname": "statistics_column_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "statistics_column_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "statistics_column_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "schedule",
+   "fieldtype": "Datetime",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Schedule",
+   "reqd": 1
+  },
+  {
+   "fieldname": "response_status",
+   "fieldtype": "Int",
+   "label": "Response Status"
+  },
+  {
+   "fieldname": "mechanism",
+   "fieldtype": "Link",
+   "label": "Content Mechanism",
+   "options": "Content Mechanism"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "geek",
+   "fieldtype": "Section Break",
+   "label": "Geek"
+  },
+  {
+   "fetch_from": "plan.activity_type",
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Activity Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Status",
+   "options": "Pending\nSuccess\nFailed",
+   "reqd": 1
+  },
+  {
+   "description": "The Network Activity which this Network Activity is linked to. Linked Network Activity properties are used to Generate Content or to Cast for this Network Activity.",
+   "fieldname": "activity",
+   "fieldtype": "Link",
+   "label": "Linked Activity",
+   "options": "Network Activity"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "length": 500
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-08-13 11:13:49.328514",
+ "modified_by": "Administrator",
+ "module": "SMM",
+ "name": "Network Activity",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "show_title_field_in_link": 1,
+ "sort_field": "schedule",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title"
 }
