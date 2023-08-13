@@ -10,19 +10,17 @@ from urllib.parse import urlencode
 from . import utils
 
 
-redirect_uri = frappe.local.request.url_root + "api/method/smm.libs.x.callback"
-
-
 class X:
-    def __init__(self, client_id=None, client_secret=None, access_token=None, refresh_token=None, scope=[], authorization_type="Bearer", content_type="json"):
-        self.base_url = "https://api.x.com"
-        self.auth_url = "https://x.com/i/oauth2/authorize"
+    def __init__(self, client_id=None, client_secret=None, access_token=None, refresh_token=None, redirect_uri=None, scope=[], authorization_type="Bearer", content_type="json"):
+        self.base_url = "https://api.twitter.com"
+        self.auth_url = "https://twitter.com/i/oauth2/authorize"
         self.client_id = client_id
         self.client_secret = client_secret
         self.scope = scope or ["tweet.read", "tweet.write", "tweet.moderate.write", "users.read", "follows.read", "follows.write", "offline.access", "space.read",
                                "mute.read", "mute.write", "like.read", "like.write", "list.read", "list.write", "block.read", "block.write", "bookmark.read", "bookmark.write"]
         self._access_token = access_token
         self._refresh_token = refresh_token
+        self.redirect_uri = redirect_uri or "https://skedew.com/redirect" if frappe.local.request.host == "localhost:8000" else frappe.local.request.url_root + "api/method/smm.libs.x.callback"
         self.authorization_type = authorization_type
         self.content_type = content_type
         self.state = None
@@ -73,7 +71,7 @@ class X:
             return requests.request(method, url, params=params, json=json, headers=headers)
 
     # Returns authorization URL, state, code_verifier, code_challenge, code_challenge_method
-    def authorize(self, redirect_uri, scope=[], state=None, code_verifier=None, code_challenge=None, code_challenge_method="S256"):
+    def authorize(self, redirect_uri=None, scope=[], state=None, code_verifier=None, code_challenge=None, code_challenge_method="S256"):
         scope = scope or self.scope
         state = state or self.new_state()
         code_verifier = code_verifier or self.verifier()
@@ -83,7 +81,7 @@ class X:
         params = {
             "response_type": "code",
             "client_id": self.client_id,
-            "redirect_uri": redirect_uri,
+            "redirect_uri": redirect_uri or self.redirect_uri,
             "scope": " ".join(scope),
             "state": state,
             "code_challenge": code_challenge,
@@ -95,7 +93,7 @@ class X:
         return url, state, code_verifier, code_challenge, code_challenge_method
 
     # Get access token from code
-    def token(self, code_verifier=None, code=None):
+    def token(self, code_verifier=None, code=None, redirect_uri=None):
         if not code_verifier or not code:
             return
 
@@ -107,10 +105,12 @@ class X:
                 "code": code,
                 "client_id": self.client_id,
                 "code_verifier": code_verifier,
-                "redirect_uri": redirect_uri
+                "redirect_uri": redirect_uri or self.redirect_uri
             },
-            headers={"authorization_type": "Basic",
-                     "content_type": "urlencoded"}
+            headers={
+                "authorization_type": "Basic",
+                "content_type": "urlencoded"
+            }
         )
 
     # Refresh access token
@@ -133,7 +133,8 @@ class X:
 
 @frappe.whitelist()
 def authorize(**args):
-    name = utils.find(args, "name")
+    unsaved = utils.find(args, "__unsaved")
+    name = utils.find(args, "name") if not unsaved else None
     api = utils.find(args, "api")
     if not api:
         frappe.msgprint(_("API is empty!"))
@@ -147,10 +148,9 @@ def authorize(**args):
 
     client = X(client_id)
 
-    url, state, code_verifier, code_challenge, code_challenge_method = client.authorize(redirect_uri)
+    url, state, code_verifier, code_challenge, code_challenge_method = client.authorize()
 
     session_data = {
-        "name": name,
         "state": state,
         "user": frappe.session.user,
         "API": api,
@@ -160,6 +160,9 @@ def authorize(**args):
         "code_challenge": code_challenge,
         "code_challenge_method": code_challenge_method,
     }
+
+    if name:
+        session_data["name"] = name
 
     # Save session data to frappe cache so that it can be used later for verification
     frappe.cache().set_value(state, json.dumps(session_data))
@@ -173,11 +176,9 @@ def callback(**args):
     if error:
         redirect_url = f"/app/agent"
         frappe.local.response.update({"type": "redirect", "location": redirect_url, "message": f"Redirecting to Agent"})
-        # if error == "access_denied":
+        return
     if state and code:
         data = frappe.cache().get_value(state)
-        # Delete frappe cache to release memory
-        frappe.cache().delete_value(state)
         if data:
             session = json.loads(data)
             name = session.get("name")
@@ -187,6 +188,7 @@ def callback(**args):
             client_secret = session.get("client_secret") or doc.get_password("client_secret") or None
             code_verifier = session.get("code_verifier")
             client = X(client_id, client_secret)
+
             response = client.token(code_verifier=code_verifier, code=code)
 
             if response.status_code == 200:
@@ -213,8 +215,14 @@ def callback(**args):
 
                 frappe.db.commit()
 
+                # Get user profile after successful authorization
+                profile(name=doc.name)
+
                 redirect_url = f"/app/agent/{doc.name}"
                 frappe.local.response.update({"type": "redirect", "location": redirect_url, "message": f"Redirecting to Agent {doc.name}"})
+
+        # Delete frappe cache to release memory
+        frappe.cache().delete_value(state)
     return args
 
 
