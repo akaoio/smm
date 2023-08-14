@@ -58,10 +58,9 @@ def generate_content(**args):
     prompt_list = doc.get("prompts")
 
     for item in feed_provider_list:
-        docs = frappe.db.get_all("Feed", filters={"provider": item.get("feed_provider")}, order_by="creation desc", limit_start=0, limit_page_length=item.get("limit"))
+        docs = frappe.db.get_list("Feed", filters={"provider": item.get("feed_provider")}, fields=["name", "title", "description"], order_by="creation desc", limit_start=0, limit_page_length=item.get("limit"))
         for doc in docs:
-            doc = frappe.get_doc("Feed", doc.get("name"))
-            feeds.update({doc.get("name"): {"title": doc.get("title"), "description": doc.get("description")}})
+            feeds.update({doc.name: {"title": doc.title, "description": doc.description}})
 
     for item in feed_list:
         doc = frappe.get_doc("Feed", item.get("feed"))
@@ -75,7 +74,7 @@ def generate_content(**args):
         prompts.append({"role": "user", "content": json.dumps({"DATA": feeds})})
 
     # Temporarily get random API. This needs to be fixed.
-    apis = frappe.db.get_all("API", filters={"provider": "OpenAI"})
+    apis = frappe.db.get_list("API", filters={"provider": "OpenAI"})
     if (len(apis) > 0):
         api = random.choice(apis).name
         doc = frappe.get_doc("API", api)
