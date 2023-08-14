@@ -11,7 +11,7 @@ from . import utils
 
 
 class X:
-    def __init__(self, client_id=None, client_secret=None, access_token=None, refresh_token=None, redirect_uri=None, scope=[], authorization_type="Bearer", content_type="json"):
+    def __init__(self, client_id=None, client_secret=None, redirect_uri=None, access_token=None, refresh_token=None, scope=[], authorization_type="Bearer", content_type="json"):
         self.base_url = "https://api.twitter.com"
         self.auth_url = "https://twitter.com/i/oauth2/authorize"
         self.client_id = client_id
@@ -20,10 +20,16 @@ class X:
                                "mute.read", "mute.write", "like.read", "like.write", "list.read", "list.write", "block.read", "block.write", "bookmark.read", "bookmark.write"]
         self._access_token = access_token
         self._refresh_token = refresh_token
-        self.redirect_uri = redirect_uri or "https://skedew.com/redirect" if frappe.local.request.host == "localhost:8000" else frappe.local.request.url_root + "api/method/smm.libs.x.callback"
         self.authorization_type = authorization_type
         self.content_type = content_type
         self.state = None
+        config = frappe.get_site_config() or {}
+        domains = config.get("domains") or []
+        protocol = "https" if config.get("ssl_certificate") else "http"
+
+        # Check if frappe.local.request.host exists
+        host = getattr(getattr(frappe.local, "request", {}), "host", "")
+        self.redirect_uri = redirect_uri or (f"https://skedew.com/redirect" if host == "localhost:8000" else f"{protocol}://{host or domains[0]}/api/method/smm.libs.x.callback")
 
     def bearer(self):
         return f"Bearer {self._access_token}"
