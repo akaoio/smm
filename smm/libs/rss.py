@@ -28,37 +28,44 @@ def fetch(**args):
     if response.status_code == 200:
         rss = parse(response.content.decode('utf-8'))
         for item in rss:
-            frappe.get_doc({
-                "doctype": "Feed",
-                "provider": name,
-                "id": item.get("id"),
-                "title": item.get("title"),
-                "description": item.get("content") or item.get("description"),
-                "url": item.get("link")
-            }).insert()
-            frappe.db.commit()
+            # Check if the feed already exists before inserting
+            feed = frappe.db.get_value("Feed", {"url": item.get("link")})
+            if not feed:
+                frappe.get_doc({
+                    "doctype": "Feed",
+                    "provider": name,
+                    "title": item.get("title"),
+                    "description": item.get("content") or item.get("description"),
+                    "url": item.get("link")
+                }).insert()
+                frappe.db.commit()
         return rss if rss is not None else None
 
 
 def parse(xml):
     ET.register_namespace("", "http://www.w3.org/2005/Atom")
     root = ET.fromstring(xml)
-    entries = root.findall('.//{http://www.w3.org/2005/Atom}entry')
-
+    
     results = []
-    for entry in entries:
-        entry_data = {}
-        for child in entry:
+    for record in root:
+        record_data = {}
+
+        for child in record:
             tag = child.tag.replace("{http://www.w3.org/2005/Atom}", "")
+            # Make sure to collect only required data
+            if tag not in ["title", "content", "description", "link"]:
+                continue
             if tag == "link":
-                link = child.get("href")  # Retrieve the 'href' attribute value
-                parsed_url = urlparse(link)
-                query_params = parse_qs(parsed_url.query)
-                url_param = query_params.get('url', [''])[0]
-                entry_data[tag] = url_param
+                link = child.get("href") or child.text or ""  # Retrieve the 'href' attribute value
+                # Check if the link starts with `https://www.google.com/url`, this means that the link is a Google redirect link
+                if link.startswith("https://www.google.com/url"):
+                    parsed_url = urlparse(link)
+                    query_params = parse_qs(parsed_url.query)
+                    link = query_params.get('url', [''])[0]
+                record_data[tag] = link
             else:
-                entry_data[tag] = decode(child.text)
-        results.append(entry_data)
+                record_data[tag] = decode(child.text)
+        results.append(record_data)
 
     return results
 
