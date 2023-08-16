@@ -46,7 +46,11 @@ def parse(xml):
     ET.register_namespace("", "http://www.w3.org/2005/Atom")
     root = ET.fromstring(xml)
     results = []
-    for record in root:
+
+    # Check if root is Atom or RSS
+    records = root.findall("entry") if root.tag == "feed" else root.find("channel").findall("item") if root.tag == "rss" else None
+
+    for record in records:
         record_data = {}
         if len(record) > 0:
             for child in record:
