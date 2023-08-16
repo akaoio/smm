@@ -14,6 +14,7 @@ def fetch(**args):
     if not name:
         frappe.msgprint(_("Feed Provider name is empty!"))
         return
+
     url = utils.find(args, "url")
 
     doc = frappe.get_doc("Feed Provider", name)
@@ -23,10 +24,16 @@ def fetch(**args):
 
     doc.update({"fetched": frappe.utils.now()}).save()
     frappe.db.commit()
-
-    response = requests.get(url)
-    if response.status_code == 200:
+    headers = {"Cache-Control": "no-cache"}
+    response = requests.get(url, headers=headers, timeout=10)
+    if response.status_code != 200:
+        frappe.msgprint(_("Error fetching feed from {0}").format(url))
+        return
+    elif response.status_code == 200:
         rss = parse(response.content.decode('utf-8'))
+        if not rss:
+            frappe.msgprint(_("No records found!"))
+            return
         for item in rss:
             # Check if the feed already exists before inserting
             feed = frappe.db.get_value("Feed", {"url": item.get("link")})
@@ -42,13 +49,26 @@ def fetch(**args):
         return rss if rss is not None else None
 
 
-def parse(xml):
+@frappe.whitelist()
+def parse(xml=""):
+    # Trim xml string, remove spaces and new lines
+    xml = xml.strip()
+
     ET.register_namespace("", "http://www.w3.org/2005/Atom")
-    root = ET.fromstring(xml)
+
+    # Validate XML
+    try:
+        root = ET.fromstring(xml)
+    except ET.ParseError:
+        frappe.msgprint(_("Invalid XML!"))
+        return
+
     results = []
 
+    tag = root.tag.replace("{http://www.w3.org/2005/Atom}", "")
+
     # Check if root is Atom or RSS
-    records = root.findall("entry") if root.tag == "feed" else root.find("channel").findall("item") if root.tag == "rss" else None
+    records = root.findall("{http://www.w3.org/2005/Atom}entry") if tag == "feed" else root.find("channel").findall("item") if tag == "rss" else None
 
     for record in records:
         record_data = {}
