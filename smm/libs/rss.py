@@ -31,10 +31,10 @@ def fetch(**args):
             frappe.get_doc({
                 "doctype": "Feed",
                 "provider": name,
-                "id": item.id,
-                "title": item.title,
-                "description": item.content or item.description,
-                "url": item.link
+                "id": item.get("id"),
+                "title": item.get("title"),
+                "description": item.get("content") or item.get("description"),
+                "url": item.get("link")
             }).insert()
             frappe.db.commit()
         return rss if rss is not None else None
