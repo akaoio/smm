@@ -45,27 +45,26 @@ def fetch(**args):
 def parse(xml):
     ET.register_namespace("", "http://www.w3.org/2005/Atom")
     root = ET.fromstring(xml)
-    
     results = []
     for record in root:
         record_data = {}
-
-        for child in record:
-            tag = child.tag.replace("{http://www.w3.org/2005/Atom}", "")
-            # Make sure to collect only required data
-            if tag not in ["title", "content", "description", "link"]:
-                continue
-            if tag == "link":
-                link = child.get("href") or child.text or ""  # Retrieve the 'href' attribute value
-                # Check if the link starts with `https://www.google.com/url`, this means that the link is a Google redirect link
-                if link.startswith("https://www.google.com/url"):
-                    parsed_url = urlparse(link)
-                    query_params = parse_qs(parsed_url.query)
-                    link = query_params.get('url', [''])[0]
-                record_data[tag] = link
-            else:
-                record_data[tag] = decode(child.text)
-        results.append(record_data)
+        if len(record) > 0:
+            for child in record:
+                tag = child.tag.replace("{http://www.w3.org/2005/Atom}", "")
+                # Make sure to collect only required data
+                if tag not in ["title", "content", "description", "link"]:
+                    continue
+                if tag == "link":
+                    link = child.get("href") or child.text or ""  # Retrieve the 'href' attribute value
+                    # Check if the link starts with `https://www.google.com/url`, this means that the link is a Google redirect link
+                    if link.startswith("https://www.google.com/url"):
+                        parsed_url = urlparse(link)
+                        query_params = parse_qs(parsed_url.query)
+                        link = query_params.get('url', [''])[0]
+                    record_data[tag] = link
+                else:
+                    record_data[tag] = decode(child.text)
+            results.append(record_data)
 
     return results
 
