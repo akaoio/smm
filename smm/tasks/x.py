@@ -9,3 +9,4 @@ def refresh_tokens():
         duration = utils.duration(agent.modified)
         if (duration >= 0):
             client.refresh_token(name=agent.name)
+    return agents

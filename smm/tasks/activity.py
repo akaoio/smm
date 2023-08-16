@@ -4,24 +4,51 @@ import datetime
 
 
 @frappe.whitelist()
-def generate_activities():
+def process_plans():
     # Get current date and time using Frappe Utils then convert it to timedelta
     current_datetime = datetime.datetime.strptime(frappe.utils.now(), "%Y-%m-%d %H:%M:%S.%f")
-    start_datetime = current_datetime - datetime.timedelta(hours=1)
-    end_datetime = current_datetime + datetime.timedelta(hours=1)
+    current_date = current_datetime.date()
+    current_time = current_datetime.time()
 
-    network_activity_plans = frappe.db.get_list(
-        "Network Activity Plan",
-        filters=[
-            ["schedule", ">=", start_datetime],
-            ["schedule", "<=", end_datetime],
-            ["status", "=", "Pending"],
-            ["content", "=", ""]
-        ],
-        fields=["name", "schedule"],
-        order_by="schedule asc",
-        limit_page_length=3
+    network_activity_plans = frappe.db.sql(
+        """
+            SELECT `name`
+            FROM `tabNetwork Activity Plan`
+            WHERE
+                `enabled` IS TRUE AND
+                (
+                    `start_date` IS NULL OR
+                    (
+                        `start_date` <= %(current_date)s AND
+                        (
+                            `start_time` IS NULL OR
+                            (
+                                (`start_time` <= %(current_time)s AND `start_date` = %(current_date)s) OR
+                                `start_date` < %(current_date)s
+                            )
+                        )
+                    )
+                ) AND
+                (
+                    `end_date` IS NULL OR
+                    (
+                        `end_date` >= %(current_date)s AND
+                        (
+                            `end_time` IS NULL OR
+                            (
+                                (`end_time` >= %(current_time)s AND `end_date` = %(current_date)s) OR
+                                `end_date` > %(current_date)s
+                            )
+                        )
+                    )
+                )
+            ORDER BY `start_date` ASC, `start_time` ASC
+            LIMIT 3
+        """,
+        {"current_date": current_date, "current_time": current_time},
+        as_dict=True
     )
+
 
     for item in network_activity_plans:
         activity.generate_activity(name=item.name)
@@ -41,8 +68,9 @@ def process_activities():
         filters=[
             ["schedule", ">=", start_datetime],
             ["schedule", "<=", end_datetime],
+            ["enabled", "=", True],
             ["status", "=", "Pending"],
-            ["content", "=", ""]
+            ["content", "is", "not set"]
         ],
         fields=["name", "schedule"],
         order_by="schedule asc",
@@ -65,8 +93,9 @@ def cast_activities():
         filters=[
             ["schedule", ">=", start_datetime],
             ["schedule", "<=", current_datetime],
+            ["enabled", "=", True],
             ["status", "=", "Pending"],
-            ["content", "!=", ""]
+            ["content", "is", "set"]
         ],
         fields=["name", "agent", "content", "schedule"],
         order_by="schedule asc",
@@ -74,6 +103,6 @@ def cast_activities():
     )
 
     for item in network_activities:
-        activity.cast(item)
+        activity.cast(**item)
 
     return network_activities

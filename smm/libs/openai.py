@@ -33,7 +33,7 @@ def generate_content(**args):
     mechanism = utils.find(args, "name") or utils.find(args, "mechanism")
 
     doc = frappe.get_doc("Content Mechanism", mechanism)
-    if doc.get("enabled") == 0:
+    if doc.enabled == 0:
         frappe.msgprint(_(f"Content Mechanism {mechanism} is disabled."))
         return
 
@@ -44,31 +44,31 @@ def generate_content(**args):
     activity = utils.find(args, "activity")
     if activity:
         linked_activity_doc = frappe.get_doc("Network Activity", activity)
-        if linked_activity_doc.get("content"):
-            linked_content_doc = frappe.get_doc("Content", linked_activity_doc.get("content"))
-            if linked_content_doc.get("description"):
-                feeds.update({linked_content_doc.get("name"): {"title": linked_content_doc.get("title"), "description": linked_content_doc.get("description")}})
+        if linked_activity_doc.content:
+            linked_content_doc = frappe.get_doc("Content", linked_activity_doc.content)
+            if linked_content_doc.description:
+                feeds.update({linked_content_doc.name: {"title": linked_content_doc.title, "description": linked_content_doc.description}})
 
-    length = doc.get("length")
+    length = doc.length
 
-    feed_provider_list = doc.get("feed_providers")
+    feed_provider_list = doc.feed_providers
 
-    feed_list = doc.get("feeds")
+    feed_list = doc.feeds
 
-    prompt_list = doc.get("prompts")
+    prompt_list = doc.prompts
 
     for item in feed_provider_list:
-        docs = frappe.db.get_list("Feed", filters={"provider": item.get("feed_provider")}, fields=["name", "title", "description"], order_by="creation desc", limit_start=0, limit_page_length=item.get("limit"))
+        docs = frappe.db.get_list("Feed", filters={"provider": item.feed_provider}, fields=["name", "title", "description"], order_by="creation desc", limit_start=0, limit_page_length=item.limit)
         for doc in docs:
             feeds.update({doc.name: {"title": doc.title, "description": doc.description}})
 
     for item in feed_list:
-        doc = frappe.get_doc("Feed", item.get("feed"))
-        feeds.update({doc.get("name"): {"title": doc.get("title"), "description": doc.get("description")}})
+        doc = frappe.get_doc("Feed", item.feed)
+        feeds.update({doc.name: {"title": doc.title, "description": doc.description}})
 
     for item in prompt_list:
-        doc = frappe.get_doc("Prompt", item.get("prompt"))
-        prompts.append({"role": "user", "content": doc.get("description")})
+        doc = frappe.get_doc("Prompt", item.prompt)
+        prompts.append({"role": "user", "content": doc.description})
 
     if len(feeds) > 0:
         prompts.append({"role": "user", "content": json.dumps({"DATA": feeds})})
@@ -78,7 +78,7 @@ def generate_content(**args):
     if (len(apis) > 0):
         api = random.choice(apis).name
         doc = frappe.get_doc("API", api)
-        token = doc.get_password("token") if doc.get("token") else None
+        token = doc.get_password("token") if doc.token else None
 
     if not token:
         return

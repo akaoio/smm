@@ -5,8 +5,8 @@ import datetime
 
 
 fields_map = {
-    "mechanism": {"link_field": "mechanisms", "name": "mechanism", "linked_doctype": "Content Mechanism", "data_field": "content_mechanism", "type": "array"},
-    "activity": {"link_field": "activities", "name": "activity", "linked_doctype": "Network Activity", "data_field": "activity", "type": "array"}
+    "mechanism": {"link_field": "mechanisms", "field_name": "mechanism", "linked_doctype": "Content Mechanism", "data_field": "content_mechanism", "type": "array"},
+    "activity": {"link_field": "activities", "field_name": "activity", "linked_doctype": "Network Activity", "data_field": "activity", "type": "array"}
 }
 
 requirements_map = {
@@ -20,7 +20,7 @@ class ActivityPlan:
         self.name = utils.find(args, "name")
         self.doc = frappe.get_doc("Network Activity Plan", self.name)
 
-        if self.doc.get("enabled") == 0:
+        if self.doc.enabled == 0:
             frappe.msgprint(_(f"Network Activity Plan {self.name} is disabled."))
             return
 
@@ -29,8 +29,8 @@ class ActivityPlan:
         self.current_date = self.current_datetime.date()
 
         # Get plan's start date and end date
-        self.start_date = self.doc.get("start_date")
-        self.end_date = self.doc.get("end_date")
+        self.start_date = self.doc.start_date
+        self.end_date = self.doc.end_date
 
         # The base date to calculate the schedule from, defaults to current date
         self.base_date = max(self.start_date if self.start_date else self.current_date, self.current_date)
@@ -39,29 +39,28 @@ class ActivityPlan:
         self.current_time = datetime.timedelta(hours=self.current_datetime.hour, minutes=self.current_datetime.minute, seconds=self.current_datetime.second)
 
         # Get plan's daily time range to generate activity in, defaults to 00:00:00 - 23:59:59
-        self.start_time = self.doc.get("start_time") if self.doc.get("start_time") else datetime.timedelta()
-        self.end_time = self.doc.get("end_time") if self.doc.get("end_time") else datetime.timedelta(hours=23, minutes=59, seconds=59)
+        self.start_time = self.doc.start_time if self.doc.start_time else datetime.timedelta()
+        self.end_time = self.doc.end_time if self.doc.end_time else datetime.timedelta(hours=23, minutes=59, seconds=59)
 
         # duration is in seconds and type is float, convert it to timedelta
-        self.duration = datetime.timedelta(seconds=self.doc.get("duration")) if self.doc.get("duration") else datetime.timedelta()
+        self.duration = datetime.timedelta(seconds=self.doc.duration) if self.doc.duration else datetime.timedelta()
 
         # Get agents
         self.agents = set()
 
         # Get agents
-        self.agents.update(frappe.get_doc("Agent", item.get("agent")) for item in self.doc.get("agents"))
+        self.agents.update(frappe.get_doc("Agent", item.agent) for item in self.doc.agents)
 
         # Get agents from agent groups
-        for item in self.doc.get("agent_groups"):
-            agent_group = frappe.get_doc("Agent Group", item.get("agent_group")).get("agents")
-            self.agents.update(frappe.get_doc("Agent", agent.get("agent")) for agent in agent_group)
+        for item in self.doc.agent_groups:
+            agent_group = frappe.get_doc("Agent Group", item.agent_group).agents
+            self.agents.update(frappe.get_doc("Agent", agent.agent) for agent in agent_group)
 
     def schedule(self):
         # Generate one Network Activity for each Agent and for each item of each other required field
         for agent in self.agents:
-
             # Switch through value of Activity Type
-            activity_type = self.doc.get("activity_type")
+            activity_type = self.doc.activity_type
             required_fields = requirements_map.get(activity_type)
 
             arrays = []
@@ -73,10 +72,10 @@ class ActivityPlan:
                         if map_item.get("type") == "array" and map_item.get("linked_doctype") and map_item.get("data_field"):
                             # Linked Item is an Item of a Table field which is linked to a child Doctype
                             for linked_item in self.doc.get(map_item.get("link_field")):
-                                linked_item = frappe.get_doc(map_item.get("linked_doctype"), linked_item.get(map_item.get("data_field")))
+                                linked_item_doc = frappe.get_doc(map_item.get("linked_doctype"), linked_item.get(map_item.get("data_field")))
                                 # If `enabled` field doesn't exist or is 1, append the linked item to the array
-                                if linked_item.get("enabled") is None or linked_item.get("enabled") == 1:
-                                    field.append(linked_item)
+                                if linked_item_doc.enabled is None or linked_item_doc.enabled == 1:
+                                    field.append(linked_item_doc)
                         else:
                             field.append(self.doc.get(item))
                         arrays.append({"field": map_item, "data": field})
@@ -89,31 +88,31 @@ class ActivityPlan:
                 data = arrays[0].get("data")
                 if len(arrays) == 1:
                     for item in data:
-                        context[field.get("name")] = item
+                        context[field.get("field_name")] = item
                         callback(item, context)
                     return
                 for item in data:
                     # The first argument of callback is the item of the first array
                     # The remaining arguments are the items of the remaining arrays
                     # The remaining arrays are passed to the callback function recursively
-                    context[field.get("name")] = item
+                    context[field.get("field_name")] = item
                     loop_fields(arrays[1:], callback, context)
 
             # This function is used to create a Network Activity and is called by loop_fields
             def callback(item, context={}):
-                if item.get("enabled") == 0:
+                if item.enabled == 0:
                     return
 
                 # Generate filters from context
                 filters = {}
                 for key, value in context.items():
-                    filters[key] = value.get("name") if isinstance(value, frappe.model.document.Document) else value
+                    filters[key] = value.name if isinstance(value, frappe.model.document.Document) else value
 
                 base_date = self.base_date
                 # If `activity` field exists, get the latest Network Activity scheduled datetime and set it as the base date if possible.
                 linked_activity_schedule = self.current_datetime
                 if context.get("activity"):
-                    linked_activity_schedule = context.get("activity").get("schedule")
+                    linked_activity_schedule = context.get("activity").schedule
                     base_date = max(base_date, linked_activity_schedule.date())
 
                 # The chosen date and timeframe is the nearest one that is possible to create new Network Activity into
@@ -149,7 +148,7 @@ class ActivityPlan:
                     # The latest Network Activity schedule is then combined with duration to get the next possible schedule
                     # The next possible schedule is then compared with the current datetime to get the nearest possible schedule
                     if len(latest_activity) > 0:
-                        latest_activity_datetime = latest_activity[0].get("schedule")
+                        latest_activity_datetime = latest_activity[0].schedule
                         if latest_activity_datetime:
                             schedule_datetime = max(latest_activity_datetime + self.duration, schedule_datetime)
 
@@ -185,8 +184,6 @@ class ActivityPlan:
                 callback
             )
 
-            return True
-
 
 @frappe.whitelist()
 def generate_activity(**args):
@@ -201,14 +198,14 @@ def generate_content(**args):
         return
     doc = frappe.get_doc("Network Activity", name)
     # Only generate content for Network Activity with status Pending and without content
-    if doc.get("status") != "Pending" or doc.get("content"):
+    if doc.status != "Pending" or doc.content:
         return
-    mechanism = frappe.get_doc("Content Mechanism", doc.get("mechanism"))
-    if mechanism.get("enabled") == 0:
+    mechanism = frappe.get_doc("Content Mechanism", doc.mechanism)
+    if mechanism.enabled == 0:
         return
 
     # Generate filters for Content Generator
-    required_fields = requirements_map.get(doc.get("type"))
+    required_fields = requirements_map.get(doc.type)
     filters = {}
     for field in required_fields:
         filters[field] = doc.get(field)
@@ -227,24 +224,24 @@ def cast(**args):
         return
 
     doc = frappe.get_doc("Network Activity", name)
-    if doc.get("status") != "Pending":
+    if doc.status != "Pending":
         return
 
-    agent = frappe.get_doc("Agent", utils.find(args, "agent") or doc.get("agent"))
-    provider = agent.get("provider")
+    agent = frappe.get_doc("Agent", utils.find(args, "agent") or doc.agent)
+    provider = agent.provider
 
     linked_external_id = None
-    if doc.get("activity"):
-        linked_activity = frappe.get_doc("Network Activity", doc.get("activity"))
-        if linked_activity.get("external_id"):
-            linked_external_id = linked_activity.get("external_id")
+    if doc.activity:
+        linked_activity = frappe.get_doc("Network Activity", doc.activity)
+        if linked_activity.external_id:
+            linked_external_id = linked_activity.external_id
 
     content = utils.find(args, "content")
     content = frappe.get_doc("Content", content) if content else None
     if not content:
         return
 
-    text = utils.remove_quotes(content.get("description"))
+    text = utils.remove_quotes(content.description)
 
     clients = {
         "Telegram": telegram,

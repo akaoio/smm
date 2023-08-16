@@ -19,7 +19,7 @@ def fetch(**args):
     doc = frappe.get_doc("Feed Provider", name)
 
     if not url:
-        url = doc.get("url")
+        url = doc.url
 
     doc.update({"fetched": frappe.utils.now()}).save()
     frappe.db.commit()
@@ -31,10 +31,10 @@ def fetch(**args):
             frappe.get_doc({
                 "doctype": "Feed",
                 "provider": name,
-                "id": item.get('id'),
-                "title": item.get('title'),
-                "description": item.get('content') or item.get('description'),
-                "url": item.get("link")
+                "id": item.id,
+                "title": item.title,
+                "description": item.content or item.description,
+                "url": item.link
             }).insert()
             frappe.db.commit()
         return rss if rss is not None else None
