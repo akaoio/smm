@@ -136,7 +136,6 @@ class ActivityPlan:
                         filters={
                             "plan": self.name,
                             "agent": agent.name,
-                            "status": "Pending",
                             "schedule": ["<=", utils.comebine_datetime(date, self.end_time)],
                             **filters
                         },
