@@ -3,15 +3,45 @@ from frappe import _
 from . import utils, x, telegram, openai
 import datetime
 
-
 fields_map = {
-    "mechanism": {"link_field": "mechanisms", "field_name": "mechanism", "linked_doctype": "Content Mechanism", "data_field": "content_mechanism", "type": "array"},
-    "activity": {"link_field": "activities", "field_name": "activity", "linked_doctype": "Network Activity", "data_field": "activity", "type": "array"}
+    "mechanism": {
+        "type": "array",
+        "name": "mechanism",
+        "parent_field": "mechanisms",
+        "field_name": "mechanism",
+        "child_doctype": "Content Mechanism",
+        "child_field": "content_mechanism",
+        "filters": {
+            "name": "mechanism"
+        }
+    },
+    "activity": {
+        "type": "array",
+        "name": "activity",
+        "parent_field": "activities",
+        "field_name": "activity",
+        "child_doctype": "Network Activity",
+        "child_field": "activity",
+        "filters": {
+            "name": "activity"
+        }
+    },
+    "plan": {
+        "type": "array",
+        "name": "plan",
+        "parent_field": "plans",
+        "field_name": "plan",
+        "child_doctype": "Network Activity",
+        "child_field": "activity",
+        "filters": {
+            "plan": "plan"
+        }
+    }
 }
 
 requirements_map = {
     "Post Content": ["mechanism"],
-    "Post Comment": ["activity", "mechanism"]
+    "Post Comment": ["plan", "activity", "mechanism"]
 }
 
 
@@ -19,7 +49,7 @@ class ActivityPlan:
     def __init__(self, **args):
         self.name = utils.find(args, "name")
         self.doc = frappe.get_doc("Network Activity Plan", self.name)
-
+        
         if self.doc.enabled == 0:
             frappe.msgprint(_(f"Network Activity Plan {self.name} is disabled."))
             return
@@ -62,43 +92,64 @@ class ActivityPlan:
             # Switch through value of Activity Type
             activity_type = self.doc.activity_type
             required_fields = requirements_map.get(activity_type)
-
-            arrays = []
+            
+            # nested_fields must be dictionary to be able to store unique data
+            nested_fields = {}
             if required_fields is not None and len(required_fields) > 0:
                 for item in required_fields:
-                    map_item = fields_map.get(item)
-                    if map_item is not None:
-                        field = []
-                        if map_item.get("type") == "array" and map_item.get("linked_doctype") and map_item.get("data_field"):
-                            # Linked Item is an Item of a Table field which is linked to a child Doctype
-                            for linked_item in self.doc.get(map_item.get("link_field")):
-                                linked_item_doc = frappe.get_doc(map_item.get("linked_doctype"), linked_item.get(map_item.get("data_field")))
-                                # If `enabled` field doesn't exist or is 1, append the linked item to the array
-                                if linked_item_doc.enabled is None or linked_item_doc.enabled == 1:
-                                    field.append(linked_item_doc)
-                        else:
-                            field.append(self.doc.get(item))
-                        arrays.append({"field": map_item, "data": field})
+                    field_map = fields_map.get(item)
+                    if field_map is not None:
+                        # Check if item already exists in nested_fields
+                        key = field_map.get("key") if field_map.get("key") is not None else item
+                        nested_fields[key] = nested_fields.get(key) or {"map": field_map, "data": {}}
 
+                        # If field type is array, get the linked items
+                        if field_map.get("type") == "array" and field_map.get("child_doctype") and field_map.get("child_field"):
+                            # Linked Item is an Item of the parent Table field which is linked to a child Doctype
+                            for linked_item in self.doc.get(field_map.get("parent_field")):
+                                # Generate "filters"
+                                filters = {}
+                                if field_map.get("filters") is not None:
+                                    for key, value in field_map.get("filters").items():
+                                        filters[key] = linked_item.get(value)
+                                
+                                children = frappe.db.get_list(
+                                    field_map.get("child_doctype"),
+                                    filters=filters
+                                )
+
+                                for child in children:
+                                    linked_item_doc = frappe.get_doc(field_map.get("child_doctype"), child.name)
+                                    # If `enabled` field doesn't exist or is 1, append the linked item to the array
+                                    if linked_item_doc.enabled is None or linked_item_doc.enabled == 1:
+                                        nested_fields[key].get("data")[child.name] = linked_item_doc
+
+                        # If field type is single, it is unique by default, so just get the value
+                        else:
+                            nested_fields[key].get("data")[item] = self.doc.get(item)
+            
+            # convert nested_fields into array to access it with number
+            nested_fields = list(nested_fields.values())
+            
             # This function is used to loop through each item of each array
-            def loop_fields(arrays, callback, context={}):
+            def loop(arrays, callback, context={}):
                 if len(arrays) == 0:
                     return
-                field = arrays[0].get("field")
+                field_map = arrays[0].get("map")
                 data = arrays[0].get("data")
                 if len(arrays) == 1:
-                    for item in data:
-                        context[field.get("field_name")] = item
+                    for item in data.values():
+                        context[field_map.get("field_name")] = item
                         callback(item, context)
                     return
-                for item in data:
+                for item in data.values():
                     # The first argument of callback is the item of the first array
                     # The remaining arguments are the items of the remaining arrays
                     # The remaining arrays are passed to the callback function recursively
-                    context[field.get("field_name")] = item
-                    loop_fields(arrays[1:], callback, context)
+                    context[field_map.get("field_name")] = item
+                    loop(arrays[1:], callback, context)
 
-            # This function is used to create a Network Activity and is called by loop_fields
+            # This function is used to create a Network Activity and is called by loop
             def callback(item, context={}):
                 if item.enabled == 0:
                     return
@@ -178,8 +229,8 @@ class ActivityPlan:
                     frappe.db.commit()
                     break
 
-            loop_fields(
-                arrays,
+            loop(
+                nested_fields,
                 callback
             )
 
@@ -278,7 +329,10 @@ def cast(**args):
             external_id = data.get("result").get("message_id")
         if external_id:
             doc.update({"external_id": external_id})
+    else:
+        doc.update({"status": "Failed"})
 
     doc.save()
     frappe.db.commit()
+
     return response
