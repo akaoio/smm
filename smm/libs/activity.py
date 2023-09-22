@@ -6,33 +6,27 @@ import datetime
 fields_map = {
     "mechanism": {
         "type": "array",
-        "name": "mechanism",
         "parent_field": "mechanisms",
         "field_name": "mechanism",
         "child_doctype": "Content Mechanism",
-        "child_field": "content_mechanism",
         "filters": {
-            "name": "mechanism"
+            "name": "content_mechanism"
         }
     },
     "activity": {
         "type": "array",
-        "name": "activity",
         "parent_field": "activities",
         "field_name": "activity",
         "child_doctype": "Network Activity",
-        "child_field": "activity",
         "filters": {
             "name": "activity"
         }
     },
     "plan": {
         "type": "array",
-        "name": "plan",
         "parent_field": "plans",
-        "field_name": "plan",
+        "field_name": "activity",
         "child_doctype": "Network Activity",
-        "child_field": "activity",
         "filters": {
             "plan": "plan"
         }
@@ -93,25 +87,25 @@ class ActivityPlan:
             activity_type = self.doc.activity_type
             required_fields = requirements_map.get(activity_type)
             
-            # nested_fields must be dictionary to be able to store unique data
-            nested_fields = {}
+            # fields must be dictionary to be able to store unique data
+            fields = {}
             if required_fields is not None and len(required_fields) > 0:
                 for item in required_fields:
                     field_map = fields_map.get(item)
                     if field_map is not None:
-                        # Check if item already exists in nested_fields
-                        key = field_map.get("key") if field_map.get("key") is not None else item
-                        nested_fields[key] = nested_fields.get(key) or {"map": field_map, "data": {}}
+                        # Check if item already exists in fields
+                        key = field_map.get("field_name") if field_map.get("field_name") is not None else item
+                        fields[key] = fields.get(key) or {"map": field_map, "data": {}}
 
                         # If field type is array, get the linked items
-                        if field_map.get("type") == "array" and field_map.get("child_doctype") and field_map.get("child_field"):
+                        if field_map.get("type") == "array" and field_map.get("child_doctype"):
                             # Linked Item is an Item of the parent Table field which is linked to a child Doctype
                             for linked_item in self.doc.get(field_map.get("parent_field")):
                                 # Generate "filters"
                                 filters = {}
                                 if field_map.get("filters") is not None:
-                                    for key, value in field_map.get("filters").items():
-                                        filters[key] = linked_item.get(value)
+                                    for k, v in field_map.get("filters").items():
+                                        filters[k] = linked_item.get(v)
                                 
                                 children = frappe.db.get_list(
                                     field_map.get("child_doctype"),
@@ -122,15 +116,14 @@ class ActivityPlan:
                                     linked_item_doc = frappe.get_doc(field_map.get("child_doctype"), child.name)
                                     # If `enabled` field doesn't exist or is 1, append the linked item to the array
                                     if linked_item_doc.enabled is None or linked_item_doc.enabled == 1:
-                                        nested_fields[key].get("data")[child.name] = linked_item_doc
+                                        fields[key].get("data")[child.name] = linked_item_doc
 
                         # If field type is single, it is unique by default, so just get the value
-                        else:
-                            nested_fields[key].get("data")[item] = self.doc.get(item)
+                        else: fields[key].get("data")[item] = self.doc.get(item)
             
-            # convert nested_fields into array to access it with number
-            nested_fields = list(nested_fields.values())
-            
+            # convert fields into array to access it with number
+            fields = list(fields.values())
+
             # This function is used to loop through each item of each array
             def loop(arrays, callback, context={}):
                 if len(arrays) == 0:
@@ -230,7 +223,7 @@ class ActivityPlan:
                     break
 
             loop(
-                nested_fields,
+                fields,
                 callback
             )
 

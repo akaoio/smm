@@ -1,0 +1,1 @@
+-   Improve generate_activity, add more filters so that it would not generate bulk entries.
