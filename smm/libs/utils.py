@@ -65,3 +65,39 @@ def shorten_string(input, length=60):
         return input
     else:
         return input[:length - 3] + "..."
+
+def generate_filters(filters={}, context={}):
+    # Sample input: {"key": {"var": ["context_key", "context_key2"]}}
+    # Filters:
+    # {
+    #     "plan": {"var": ["linked_item", "plan"]},
+    #     "agent": ["!=", {"var": ["agent", "name"]}],
+    #     "status": "Success"
+    # }
+    # Context:
+    # {
+    #     "self": self,
+    #     "linked_item": linked_item,
+    #     "agent": agent,
+    # }
+    
+    # For dict
+    if isinstance(filters, dict):
+        # If the input contains "var", replace it with relevent context value.
+        if filters.get("var") is not None:
+            searcher = None
+            for item in filters.get("var"):
+                searcher = context.get(item) if searcher is None else searcher.get(item)
+            return searcher
+        # For normal dict, just loop.
+        for key, props in filters.items():
+            filters[key] = generate_filters(props, context)
+    
+    # For array
+    if isinstance(filters, list):
+        for index, props in enumerate(filters):
+            if isinstance(props, dict) and props.get("var") is not None:
+                filters[index] = generate_filters(props, context)
+    
+    # By default, just return filters.
+    return filters

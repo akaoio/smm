@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 from . import utils, x, telegram, openai
 import datetime
+import copy
 
 fields_map = {
     "mechanism": {
@@ -10,7 +11,7 @@ fields_map = {
         "field_name": "mechanism",
         "child_doctype": "Content Mechanism",
         "filters": {
-            "name": "content_mechanism"
+            "name": {"var": ["linked_item","content_mechanism"]}
         }
     },
     "activity": {
@@ -19,7 +20,7 @@ fields_map = {
         "field_name": "activity",
         "child_doctype": "Network Activity",
         "filters": {
-            "name": "activity"
+            "name": {"var": ["linked_item", "activity"]}
         }
     },
     "plan": {
@@ -28,7 +29,9 @@ fields_map = {
         "field_name": "activity",
         "child_doctype": "Network Activity",
         "filters": {
-            "plan": "plan"
+            "plan": {"var": ["linked_item", "plan"]},
+            "agent": ["!=", {"var": ["agent", "name"]}],
+            "status": "Success"
         }
     }
 }
@@ -80,7 +83,13 @@ class ActivityPlan:
             agent_group = frappe.get_doc("Agent Group", item.agent_group).agents
             self.agents.update(frappe.get_doc("Agent", agent.agent) for agent in agent_group)
 
+    
+
     def schedule(self):
+        if self.doc.enabled == 0:
+            frappe.msgprint(_(f"Network Activity Plan {self.name} is disabled."))
+            return
+        
         # Generate one Network Activity for each Agent and for each item of each other required field
         for agent in self.agents:
             # Switch through value of Activity Type
@@ -101,17 +110,14 @@ class ActivityPlan:
                         if field_map.get("type") == "array" and field_map.get("child_doctype"):
                             # Linked Item is an Item of the parent Table field which is linked to a child Doctype
                             for linked_item in self.doc.get(field_map.get("parent_field")):
-                                # Generate "filters"
+                                # Create a full copy of the original filters map and generate filters from it
                                 filters = {}
-                                if field_map.get("filters") is not None:
-                                    for k, v in field_map.get("filters").items():
-                                        filters[k] = linked_item.get(v)
                                 
-                                children = frappe.db.get_list(
-                                    field_map.get("child_doctype"),
-                                    filters=filters
-                                )
-
+                                if field_map.get("filters") is not None:
+                                    filters = utils.generate_filters(copy.deepcopy(field_map.get("filters")), locals())
+                                
+                                children = frappe.db.get_list(field_map.get("child_doctype"), filters=filters)
+                                
                                 for child in children:
                                     linked_item_doc = frappe.get_doc(field_map.get("child_doctype"), child.name)
                                     # If `enabled` field doesn't exist or is 1, append the linked item to the array
