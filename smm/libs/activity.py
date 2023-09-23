@@ -114,7 +114,13 @@ class ActivityPlan:
                                 filters = {}
                                 
                                 if field_map.get("filters") is not None:
-                                    filters = utils.generate_filters(copy.deepcopy(field_map.get("filters")), locals())
+                                    filters = utils.generate_filters(
+                                        copy.deepcopy(field_map.get("filters")),
+                                        {
+                                            "agent": agent,
+                                            "linked_item": linked_item
+                                        }
+                                    )
                                 
                                 children = frappe.db.get_list(field_map.get("child_doctype"), filters=filters)
                                 
