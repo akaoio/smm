@@ -155,7 +155,7 @@ class ActivityPlan:
                     loop(arrays[1:], callback, context)
 
             # This function is used to create a Network Activity and is called by loop
-            def callback(item, context={}):
+            def generator(item, context={}):
                 if item.enabled == 0:
                     return
 
@@ -236,7 +236,7 @@ class ActivityPlan:
 
             loop(
                 fields,
-                callback
+                generator
             )
 
 

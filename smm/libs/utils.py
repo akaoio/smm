@@ -80,6 +80,12 @@ def generate_filters(filters={}, context={}):
     #     "linked_item": linked_item,
     #     "agent": agent,
     # }
+    # Output:
+    # {
+    #     "plan": "plan_name",
+    #     "agent": ["!=", "agent_name"],
+    #     "status": "Success"
+    # }
     
     # For dict
     if isinstance(filters, dict):
