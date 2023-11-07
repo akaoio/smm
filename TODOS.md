@@ -1,4 +1,0 @@
--   Improve generate_activity, add more filters so that it would not generate bulk entries.
--   generate_filters seems working but somehow it is laggy with memory exceed error. Find out why.
--   Find out why the dialog box "Generating Network Activity" displayed without call.
--   Couldn't find the cause of the bug. 

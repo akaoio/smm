@@ -184,8 +184,13 @@
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2023-08-13 11:13:49.328514",
+ "links": [
+  {
+   "link_doctype": "Network Activity",
+   "link_fieldname": "activity"
+  }
+ ],
+ "modified": "2023-10-12 10:51:50.914759",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Network Activity",
