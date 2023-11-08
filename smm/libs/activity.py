@@ -218,8 +218,8 @@ class ActivityPlan:
                                 context = {"field": field, "agent": agent, "linked_item": linked_item}
                                 
                                 # Check if the field has its own query function
-                                if field.get("query") is not None and self.get(field.get("query")) is not None:
-                                    children = self[field.get("query")](context)
+                                if field.get("query") is not None and hasattr(self, field.get("query")):
+                                    children = getattr(self, field.get("query"))(context)
                                 
                                 else:
                                     # Create a full copy of the original filters map and generate filters from it
