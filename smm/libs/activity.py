@@ -219,7 +219,7 @@ class ActivityPlan:
                                 
                                 # Check if the field has its own query function
                                 if field.get("query") is not None and hasattr(self, field.get("query")):
-                                    children = getattr(self, field.get("query"))(context=context)
+                                    children = getattr(self, field.get("query"))(context)
                                 
                                 else:
                                     # Create a full copy of the original filters map and generate filters from it
@@ -257,7 +257,7 @@ class ActivityPlan:
             )
 
 
-    def plan_query(context={}):
+    def plan_query(self, context={}):
         doctype = context.get("field").get("child_doctype")
         plan = context.get("linked_item").get("plan")
         agent = context.get("agent").get("name")
@@ -266,17 +266,18 @@ class ActivityPlan:
 
         # Get the list of Network Activities created by the agent
         subquery = frappe.qb.from_(doctype).select(doctype.activity).distinct().where(
-            doctype.type == "Post Comment",
-            doctype.status.isin(["Pending", "Success"]),
-            doctype.agent == agent
+            (doctype.agent == agent) &
+            (doctype.type == "Post Comment") &
+            doctype.status.isin(["Pending", "Success"])
+            
         )
         
         # Get the list of Network Activities created by other agents that are not in the list of Network Activities created by the agent
         query = frappe.qb.from_(doctype).select("name").distinct().where(
-            doctype.plan == plan,
-            doctype.agent != agent,
-            doctype.type == "Post Content",
-            doctype.status == "Success",
+            (doctype.plan == plan) &
+            (doctype.agent != agent) &
+            (doctype.type == "Post Content") &
+            (doctype.status == "Success") &
             doctype.name.notin(subquery)
         ).run(as_dict=True)
 
