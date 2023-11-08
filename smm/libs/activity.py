@@ -219,7 +219,7 @@ class ActivityPlan:
                                 
                                 # Check if the field has its own query function
                                 if field.get("query") is not None and hasattr(self, field.get("query")):
-                                    children = getattr(self, field.get("query"))(context)
+                                    children = getattr(self, field.get("query"))(context=context)
                                 
                                 else:
                                     # Create a full copy of the original filters map and generate filters from it
