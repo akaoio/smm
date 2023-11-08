@@ -4,7 +4,6 @@ from . import utils, x, telegram, openai
 import datetime
 import copy
 
-
 requirements = {
     "Post Content": ["mechanism"],
     "Post Comment": ["plan", "activity", "mechanism"]
@@ -44,9 +43,6 @@ props = {
         "query": "plan_query"
     }
 }
-
-
-
 
 
 class ActivityPlan:
