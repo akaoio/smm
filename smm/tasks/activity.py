@@ -10,45 +10,76 @@ def process_plans():
     current_date = current_datetime.date()
     current_time = current_datetime.time()
 
-    network_activity_plans = frappe.db.sql(
-        """
-            SELECT `name`
-            FROM `tabNetwork Activity Plan`
-            WHERE
-                `enabled` IS TRUE AND
+    # network_activity_plans = frappe.db.sql(
+    #     """
+    #         SELECT `name`
+    #         FROM `tabNetwork Activity Plan`
+    #         WHERE
+    #             `enabled` IS TRUE AND
+    #             (
+    #                 `start_date` IS NULL OR
+    #                 (
+    #                     `start_date` <= %(current_date)s AND
+    #                     (
+    #                         `start_time` IS NULL OR
+    #                         (
+    #                             (`start_time` <= %(current_time)s AND `start_date` = %(current_date)s) OR
+    #                             `start_date` < %(current_date)s
+    #                         )
+    #                     )
+    #                 )
+    #             ) AND
+    #             (
+    #                 `end_date` IS NULL OR
+    #                 (
+    #                     `end_date` >= %(current_date)s AND
+    #                     (
+    #                         `end_time` IS NULL OR
+    #                         (
+    #                             (`end_time` >= %(current_time)s AND `end_date` = %(current_date)s) OR
+    #                             `end_date` > %(current_date)s
+    #                         )
+    #                     )
+    #                 )
+    #             )
+    #         ORDER BY `start_date` ASC, `start_time` ASC
+    #         LIMIT 3
+    #     """,
+    #     {"current_date": current_date, "current_time": current_time},
+    #     as_dict=True
+    # )
+
+    doctype = frappe.qb.Doctype("Network Activity Plan")
+
+    network_activity_plans = frappe.qb.from_(doctype).select("name").distinct().where(
+        (doctype.enabled == True) &
+        (
+            (doctype.start_date == None) |
+            (
+                (doctype.start_date <= current_date) &
                 (
-                    `start_date` IS NULL OR
+                    (doctype.start_time == None) |
                     (
-                        `start_date` <= %(current_date)s AND
-                        (
-                            `start_time` IS NULL OR
-                            (
-                                (`start_time` <= %(current_time)s AND `start_date` = %(current_date)s) OR
-                                `start_date` < %(current_date)s
-                            )
-                        )
-                    )
-                ) AND
-                (
-                    `end_date` IS NULL OR
-                    (
-                        `end_date` >= %(current_date)s AND
-                        (
-                            `end_time` IS NULL OR
-                            (
-                                (`end_time` >= %(current_time)s AND `end_date` = %(current_date)s) OR
-                                `end_date` > %(current_date)s
-                            )
-                        )
+                        ((doctype.start_time <= current_time) & (doctype.start_date == current_date)) |
+                        (doctype.start_date < current_date)
                     )
                 )
-            ORDER BY `start_date` ASC, `start_time` ASC
-            LIMIT 3
-        """,
-        {"current_date": current_date, "current_time": current_time},
-        as_dict=True
-    )
-
+            )
+        ) &
+        (
+            (doctype.end_date == None) |
+            (
+                (doctype.end_date >= current_date) &
+                (
+                    (doctype.end_time == None) |
+                    (
+                        ((doctype.end_time >= current_time) & (doctype.end_date == current_date)) |
+                        (doctype.end_date > current_date)
+                    )
+                )
+            )
+        )
+    ).orderby(doctype.start_date, doctype.start_time).limit(3).run(as_dict=True)
 
     for item in network_activity_plans:
         activity.generate_activity(name=item.name)

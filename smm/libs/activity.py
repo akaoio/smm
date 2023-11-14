@@ -254,11 +254,10 @@ class ActivityPlan:
 
 
     def plan_query(self, context={}):
-        doctype = context.get("field").get("child_doctype")
+        doctype = frappe.qb.DocType(context.get("field").get("child_doctype"))
         plan = context.get("linked_item").get("plan")
         agent = context.get("agent").get("name")
 
-        doctype = frappe.qb.DocType(doctype)
 
         # Get the list of Network Activities created by the agent
         subquery = frappe.qb.from_(doctype).select(doctype.activity).distinct().where(
