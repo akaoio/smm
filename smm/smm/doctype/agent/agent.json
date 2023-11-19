@@ -1,124 +1,129 @@
 {
-  "actions": [
-    {
-      "action": "smm.libs.x.profile",
-      "action_type": "Server Action",
-      "label": "Get Profile"
-    },
-    {
-      "action": "smm.libs.x.refresh_token",
-      "action_type": "Server Action",
-      "label": "Refresh Token"
-    }
-  ],
-  "creation": "2023-07-07 15:40:49.535984",
-  "default_view": "List",
-  "doctype": "DocType",
-  "editable_grid": 1,
-  "engine": "InnoDB",
-  "field_order": [
-    "title",
-    "api",
-    "provider",
-    "authorize_x",
-    "username",
-    "picture",
-    "access_token",
-    "refresh_token"
-  ],
-  "fields": [
-    {
-      "fieldname": "api",
-      "fieldtype": "Link",
-      "in_list_view": 1,
-      "label": "API",
-      "options": "API",
-      "reqd": 1
-    },
-    {
-      "depends_on": "eval: doc.provider === \"X\"",
-      "fieldname": "authorize_x",
-      "fieldtype": "Button",
-      "label": "Authorize X"
-    },
-    {
-      "depends_on": "eval: doc.provider === \"X\"",
-      "fieldname": "access_token",
-      "fieldtype": "Password",
-      "label": "Access Token",
-      "length": 500
-    },
-    {
-      "depends_on": "eval: doc.provider === \"X\"",
-      "fieldname": "refresh_token",
-      "fieldtype": "Password",
-      "label": "Refresh Token",
-      "length": 500
-    },
-    {
-      "depends_on": "eval: [\"Telegram\", \"X\"].includes(doc.provider)",
-      "fieldname": "username",
-      "fieldtype": "Data",
-      "in_filter": 1,
-      "in_list_view": 1,
-      "in_preview": 1,
-      "in_standard_filter": 1,
-      "label": "Username",
-      "search_index": 1
-    },
-    {
-      "fieldname": "picture",
-      "fieldtype": "Data",
-      "label": "Picture",
-      "length": 500
-    },
-    {
-      "fetch_from": "api.provider",
-      "fieldname": "provider",
-      "fieldtype": "Data",
-      "in_list_view": 1,
-      "in_preview": 1,
-      "in_standard_filter": 1,
-      "label": "Provider",
-      "reqd": 1,
-      "search_index": 1
-    },
-    {
-      "bold": 1,
-      "fieldname": "title",
-      "fieldtype": "Data",
-      "hidden": 1,
-      "in_filter": 1,
-      "in_list_view": 1,
-      "in_preview": 1,
-      "in_standard_filter": 1,
-      "label": "Title"
-    }
-  ],
-  "index_web_pages_for_search": 1,
-  "links": [],
-  "modified": "2023-07-18 00:31:03.458248",
-  "modified_by": "Administrator",
-  "module": "SMM",
-  "name": "Agent",
-  "owner": "Administrator",
-  "permissions": [
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "System Manager",
-      "share": 1,
-      "write": 1
-    }
-  ],
-  "show_title_field_in_link": 1,
-  "sort_field": "modified",
-  "sort_order": "DESC",
-  "states": [],
-  "title_field": "title"
+ "actions": [
+  {
+   "action": "smm.libs.x.profile",
+   "action_type": "Server Action",
+   "label": "Get Profile"
+  },
+  {
+   "action": "smm.libs.x.refresh_token",
+   "action_type": "Server Action",
+   "label": "Refresh Token"
+  }
+ ],
+ "creation": "2023-07-07 15:40:49.535984",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "api",
+  "provider",
+  "authorize_x",
+  "username",
+  "picture",
+  "access_token",
+  "refresh_token"
+ ],
+ "fields": [
+  {
+   "fieldname": "api",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "API",
+   "options": "API",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval: doc.provider === \"X\"",
+   "fieldname": "authorize_x",
+   "fieldtype": "Button",
+   "label": "Authorize X"
+  },
+  {
+   "depends_on": "eval: doc.provider === \"X\"",
+   "fieldname": "access_token",
+   "fieldtype": "Password",
+   "label": "Access Token",
+   "length": 500
+  },
+  {
+   "depends_on": "eval: doc.provider === \"X\"",
+   "fieldname": "refresh_token",
+   "fieldtype": "Password",
+   "label": "Refresh Token",
+   "length": 500
+  },
+  {
+   "depends_on": "eval: [\"Telegram\", \"X\"].includes(doc.provider)",
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Username",
+   "search_index": 1
+  },
+  {
+   "fieldname": "picture",
+   "fieldtype": "Data",
+   "label": "Picture",
+   "length": 500
+  },
+  {
+   "fetch_from": "api.provider",
+   "fieldname": "provider",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Provider",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Title"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Network Activity",
+   "link_fieldname": "agent"
+  }
+ ],
+ "modified": "2023-11-19 14:31:44.597508",
+ "modified_by": "Administrator",
+ "module": "SMM",
+ "name": "Agent",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title"
 }
