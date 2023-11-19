@@ -49,7 +49,7 @@ def process_plans():
     #     as_dict=True
     # )
 
-    doctype = frappe.qb.Doctype("Network Activity Plan")
+    doctype = frappe.qb.DocType("Network Activity Plan")
 
     network_activity_plans = frappe.qb.from_(doctype).select("name").distinct().where(
         (doctype.enabled == True) &
