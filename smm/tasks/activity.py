@@ -54,11 +54,11 @@ def process_plans():
     network_activity_plans = frappe.qb.from_(doctype).select("name").distinct().where(
         (doctype.enabled == True) &
         (
-            (doctype.start_date == None) |
+            doctype.start_date.isnull() |
             (
                 (doctype.start_date <= current_date) &
                 (
-                    (doctype.start_time == None) |
+                    doctype.start_time.isnull() |
                     (
                         ((doctype.start_time <= current_time) & (doctype.start_date == current_date)) |
                         (doctype.start_date < current_date)
@@ -67,11 +67,11 @@ def process_plans():
             )
         ) &
         (
-            (doctype.end_date == None) |
+            doctype.end_date.isnull() |
             (
                 (doctype.end_date >= current_date) &
                 (
-                    (doctype.end_time == None) |
+                    doctype.end_time.isnull() |
                     (
                         ((doctype.end_time >= current_time) & (doctype.end_date == current_date)) |
                         (doctype.end_date > current_date)
