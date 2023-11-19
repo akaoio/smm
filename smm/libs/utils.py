@@ -66,9 +66,10 @@ def shorten_string(input, length=60):
     else:
         return input[:length - 3] + "..."
 
-def generate_filters(filters={}, context={}):
-    # Sample input: {"key": {"var": ["context_key", "context_key2"]}}
-    # Filters:
+# Transform a dict or array with "var" key to a dict or array with context value.
+def transform(source={}, context={}):
+    # Sample input: {"key": {"var": ["parent_context_key", "child_context_key"]}}
+    # Source:
     # {
     #     "plan": {"var": ["linked_item", "plan"]},
     #     "agent": ["!=", {"var": ["agent", "name"]}],
@@ -88,22 +89,22 @@ def generate_filters(filters={}, context={}):
     # }
     
     # For dict
-    if isinstance(filters, dict):
+    if isinstance(source, dict):
         # If the input contains "var", replace it with relevent context value.
-        if filters.get("var") is not None:
+        if source.get("var") is not None:
             searcher = None
-            for item in filters.get("var"):
+            for item in source.get("var"):
                 searcher = context.get(item) if searcher is None else searcher.get(item)
             return searcher
         # For normal dict, just loop.
-        for key, props in filters.items():
-            filters[key] = generate_filters(props, context)
+        for key, props in source.items():
+            source[key] = transform(props, context)
     
     # For array
-    if isinstance(filters, list):
-        for index, props in enumerate(filters):
+    if isinstance(source, list):
+        for index, props in enumerate(source):
             if isinstance(props, dict) and props.get("var") is not None:
-                filters[index] = generate_filters(props, context)
+                source[index] = transform(props, context)
     
-    # By default, just return filters.
-    return filters
+    # By default, just return source.
+    return source
