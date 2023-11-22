@@ -25,7 +25,7 @@ def remove_quotes(text):
 
 
 def remove_mentions(input_string):
-    # Define the regular expression pattern to match '@username'
+    # Define the regular expression pattern to match '@alias'
     pattern = r'@(\S+)'  # \S matches any non-whitespace character, + matches one or more occurrences
 
     # Use re.sub to replace the matched pattern with an empty string

@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 from . import utils
 
 
-class Telegram:
+class TelegramBot:
     def __init__(self, token):
         if not token:
             frappe.throw(_("Telegram API is required"))
@@ -34,15 +34,15 @@ def send(**args):
     text = utils.find(args, "text")
     api = frappe.get_doc("API", agent.get("api"))
     token = api.get_password("token") or None
-    username = agent.get("username")
-    # Check if username starts with '@', if not, add it
-    if username and not username.startswith("@"):
-        username = "@" + username
+    alias = agent.get("alias")
+    # Check if alias starts with '@', if not, add it
+    if alias and not alias.startswith("@"):
+        alias = "@" + alias
     linked_external_id = utils.find(args, "linked_external_id")
 
-    client = Telegram(token=token)
+    client = TelegramBot(token=token)
 
-    params = {"chat_id": username, "text": text}
+    params = {"chat_id": alias, "text": text}
 
     if linked_external_id:
         params.update({"reply_to_message_id": linked_external_id})

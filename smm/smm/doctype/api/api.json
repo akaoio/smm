@@ -6,8 +6,9 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "title",
   "provider",
-  "username",
+  "alias",
   "token",
   "client_id",
   "client_secret",
@@ -19,23 +20,23 @@
  "fields": [
   {
    "columns": 1,
-   "depends_on": "eval: ['Telegram'].includes(doc.provider)",
-   "fieldname": "username",
+   "depends_on": "eval: ['Telegram Bot'].includes(doc.provider)",
+   "fieldname": "alias",
    "fieldtype": "Data",
    "in_filter": 1,
    "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
-   "label": "Username",
-   "mandatory_depends_on": "eval: ['Telegram'].includes(doc.provider)",
+   "label": "Alias",
+   "mandatory_depends_on": "eval: ['Telegram Bot'].includes(doc.provider)",
    "search_index": 1
   },
   {
-   "depends_on": "eval: ['Telegram','OpenAI'].includes(doc.provider)",
+   "depends_on": "eval: ['Telegram Bot','OpenAI'].includes(doc.provider)",
    "fieldname": "token",
    "fieldtype": "Password",
    "label": "Token",
-   "mandatory_depends_on": "eval: ['Telegram','OpenAI'].includes(doc.provider)"
+   "mandatory_depends_on": "eval: ['Telegram Bot','OpenAI'].includes(doc.provider)"
   },
   {
    "depends_on": "eval: ['X'].includes(doc.provider)",
@@ -59,7 +60,7 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Provider",
-   "options": "\nTelegram\nX\nOpenAI",
+   "options": "\nTelegram Bot\nX\nOpenAI",
    "reqd": 1
   },
   {
@@ -89,6 +90,17 @@
    "fieldtype": "Data",
    "is_virtual": 1,
    "label": "Privacy Policy URL"
+  },
+  {
+   "bold": 1,
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Title"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -98,7 +110,7 @@
    "link_fieldname": "api"
   }
  ],
- "modified": "2023-11-19 14:51:51.893223",
+ "modified": "2023-11-22 18:06:00.385700",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "API",
@@ -117,9 +129,10 @@
    "write": 1
   }
  ],
- "search_fields": "provider,username",
+ "search_fields": "provider,alias",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "provider"
+ "title_field": "title"
 }

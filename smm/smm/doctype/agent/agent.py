@@ -10,4 +10,4 @@ class Agent(Document):
         self.update_title()
 
     def update_title(self):
-        self.title = f"{self.username} [{self.provider}]"
+        self.title = f"{self.alias} [{self.provider}]"

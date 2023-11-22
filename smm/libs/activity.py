@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from . import utils, x, telegram, openai
+from . import utils, x, telegrambot, openai
 import datetime
 import copy
 
@@ -361,7 +361,7 @@ def cast(**args):
     text = utils.remove_quotes(content.description)
 
     clients = {
-        "Telegram": telegram,
+        "Telegram Bot": telegrambot,
         "X": x
     }
     client = clients.get(provider)
@@ -392,7 +392,7 @@ def cast(**args):
         doc.update({"status": "Success"})
         if provider == "X":
             external_id = data.get("data").get("id")
-        elif provider == "Telegram":
+        elif provider == "Telegram Bot":
             external_id = data.get("result").get("message_id")
         if external_id:
             doc.update({"external_id": external_id})

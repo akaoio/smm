@@ -279,7 +279,7 @@ def profile(**args):
 
     profile = response.json().get("data")
 
-    frappe.get_doc("Agent", name).update({"username": profile.get("username"), "picture": profile.get("profile_image_url")}).save()
+    frappe.get_doc("Agent", name).update({"alias": profile.get("username"), "picture": profile.get("profile_image_url")}).save()
 
     frappe.db.commit()
 

@@ -6,4 +6,8 @@ from frappe.model.document import Document
 
 
 class API(Document):
-	pass
+	def validate(self):
+		self.update_title()
+	
+	def update_title(self):
+		self.title = f"{self.alias} [{self.provider}]"
