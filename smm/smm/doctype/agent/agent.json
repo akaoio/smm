@@ -63,6 +63,7 @@
    "length": 500
   },
   {
+   "depends_on": "eval: doc.api",
    "fetch_from": "api.provider",
    "fieldname": "provider",
    "fieldtype": "Data",

@@ -46,7 +46,7 @@ class ActivityPlan:
         self.doc = frappe.get_doc("Network Activity Plan", self.name)
         
         if self.doc.enabled == 0:
-            frappe.msgprint(_(f"Network Activity Plan {self.name} is disabled."))
+            frappe.msgprint(_("Network Activity Plan {0} is disabled.").format(self.name))
             return
 
         # Get current date and time using Frappe Utils then convert it to timedelta
@@ -232,7 +232,7 @@ class ActivityPlan:
     
     def schedule(self):
         if self.doc.enabled == 0:
-            frappe.msgprint(_(f"Network Activity Plan {self.name} is disabled."))
+            frappe.msgprint(_("Network Activity Plan {0} is disabled.").format(self.name))
             return
         
         # Switch through value of Activity Type

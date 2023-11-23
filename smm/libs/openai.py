@@ -34,7 +34,7 @@ def generate_content(**args):
 
     doc = frappe.get_doc("Content Mechanism", mechanism)
     if doc.enabled == 0:
-        frappe.msgprint(_(f"Content Mechanism {mechanism} is disabled."))
+        frappe.msgprint(_("Content Mechanism {0} is disabled.").format(mechanism))
         return
 
     feeds = {}
