@@ -10,4 +10,4 @@ class API(Document):
 		self.update_title()
 	
 	def update_title(self):
-		self.title = f"{self.alias} [{self.provider}]"
+		self.title = f"{self.alias} [{self.provider}]" if self.alias is not None else self.provider

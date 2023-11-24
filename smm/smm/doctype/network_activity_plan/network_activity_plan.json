@@ -71,7 +71,7 @@
    "label": "End Time"
   },
   {
-   "depends_on": "eval: [\"Post Content\",\"Post Comment\"].includes(doc.activity_type)",
+   "depends_on": "eval: ['Post Content','Post Comment'].includes(doc.activity_type)",
    "fieldname": "content_sources",
    "fieldtype": "Section Break",
    "label": "Sources"
