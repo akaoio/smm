@@ -12,13 +12,19 @@ from . import utils
 def fetch(**args):
     name = utils.find(args, "name")
     if not name:
-        frappe.msgprint(_("Feed Provider name is empty!"))
+        frappe.msgprint(_("{0} name is empty").format(_("Feed Provider")))
         return
 
     url = utils.find(args, "url")
 
+    if not frappe.db.exists("Feed Provider", name):
+        frappe.msgprint(_("{0} {1} does not exist").format(_("Feed Provider"), name))
+        return
+    
     doc = frappe.get_doc("Feed Provider", name)
-
+    
+    owner = doc.owner or frappe.get_user().name
+    
     if not url:
         url = doc.url
 
@@ -32,13 +38,14 @@ def fetch(**args):
     elif response.status_code == 200:
         rss = parse(response.content.decode('utf-8'))
         if not rss:
-            frappe.msgprint(_("No records found!"))
+            frappe.msgprint(_("No records found"))
             return
         for item in rss:
             # Check if the feed already exists before inserting
             feed = frappe.db.get_value("Feed", {"url": item.get("link")})
             if not feed:
                 frappe.get_doc({
+                    "owner": owner,
                     "doctype": "Feed",
                     "provider": name,
                     "title": item.get("title"),
@@ -60,7 +67,7 @@ def parse(xml=""):
     try:
         root = ET.fromstring(xml)
     except ET.ParseError:
-        frappe.msgprint(_("Invalid XML!"))
+        frappe.msgprint(_("Invalid XML"))
         return
 
     results = []

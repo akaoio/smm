@@ -43,10 +43,17 @@ props = {
 class ActivityPlan:
     def __init__(self, **args):
         self.name = utils.find(args, "name")
+        
+        if not frappe.db.exists("Network Activity Plan", self.name):
+            frappe.msgprint(_("{0} {1} does not exist").format(_("Network Activity Plan"), self.name))
+            return
+        
         self.doc = frappe.get_doc("Network Activity Plan", self.name)
         
+        self.owner = self.doc.owner or frappe.get_user().name
+        
         if self.doc.enabled == 0:
-            frappe.msgprint(_("Network Activity Plan {0} is disabled.").format(self.name))
+            frappe.msgprint(_("{0} {1} is disabled").format(_("Network Activity Plan"), self.name))
             return
 
         # Get current date and time using Frappe Utils then convert it to timedelta
@@ -194,6 +201,7 @@ class ActivityPlan:
 
             # Generate Network Activity and break the loop
             frappe.get_doc({
+                "owner": self.owner,
                 "doctype": "Network Activity",
                 "enabled": True,
                 "plan": self.name,
@@ -232,7 +240,7 @@ class ActivityPlan:
     
     def schedule(self):
         if self.doc.enabled == 0:
-            frappe.msgprint(_("Network Activity Plan {0} is disabled.").format(self.name))
+            frappe.msgprint(_("{0} {1} is disabled").format(_("Network Activity Plan"), self.name))
             return
         
         # Switch through value of Activity Type

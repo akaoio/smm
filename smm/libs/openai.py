@@ -31,10 +31,17 @@ class OpenAI:
 @frappe.whitelist()
 def generate_content(**args):
     mechanism = utils.find(args, "name") or utils.find(args, "mechanism")
+    
+    if not frappe.db.exists("Content Mechanism", mechanism):
+        frappe.msgprint(_("{0} {1} does not exist").format(_("Content Mechanism"), mechanism))
+        return
 
     doc = frappe.get_doc("Content Mechanism", mechanism)
+    
+    owner = doc.owner or frappe.get_user().name
+    
     if doc.enabled == 0:
-        frappe.msgprint(_("Content Mechanism {0} is disabled.").format(mechanism))
+        frappe.msgprint(_("{0} {1} is disabled").format(_("Content Mechanism"), mechanism))
         return
 
     feeds = {}
@@ -129,6 +136,7 @@ def generate_content(**args):
         description = utils.remove_mentions(description)
         description = utils.remove_quotes(description)
         doc = frappe.get_doc({
+            "owner": owner,
             "doctype": "Content",
             "mechanism": mechanism,
             "title": title,

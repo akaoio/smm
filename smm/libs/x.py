@@ -143,13 +143,13 @@ def authorize(**args):
     name = utils.find(args, "name") if not unsaved else None
     api = utils.find(args, "api")
     if not api:
-        frappe.msgprint(_("API is empty!"))
+        frappe.msgprint(_("{0} is empty").format(_("API")))
         return
     doc = frappe.get_doc("API", api)
     client_id = doc.get_password("client_id") or None
     client_secret = doc.get_password("client_secret") or None
     if not client_id or not client_secret:
-        frappe.msgprint(_("Client ID or Client Secret or both not found!"))
+        frappe.msgprint(_("Client ID or Client Secret or both not found"))
         return
 
     client = X(client_id)
@@ -236,7 +236,7 @@ def callback(**args):
 def refresh_token(**args):
     name = utils.find(args, "name")
     if not name:
-        frappe.msgprint(_("Agent name is empty!"))
+        frappe.msgprint(_("{0} name is empty").format(_("Agent")))
         return
 
     doc = frappe.get_doc("Agent", name)
@@ -247,7 +247,7 @@ def refresh_token(**args):
     client_secret = doc.get_password("client_secret") or None
 
     if not client_id or not client_secret:
-        frappe.msgprint(_("Client ID or Client Secret or both not found!"))
+        frappe.msgprint(_("Client ID or Client Secret or both not found"))
         return
 
     client = X(client_id, client_secret)

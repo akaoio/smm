@@ -164,10 +164,10 @@
    "reqd": 1
   },
   {
-   "description": "The Network Activity which this Network Activity is linked to. Linked Network Activity properties are used to Generate Content or to Cast for this Network Activity.",
+   "description": "The Network Activity which this Network Activity responds to",
    "fieldname": "activity",
    "fieldtype": "Link",
-   "label": "Linked Activity",
+   "label": "Linked Network Activity",
    "options": "Network Activity"
   },
   {
@@ -190,7 +190,7 @@
    "link_fieldname": "activity"
   }
  ],
- "modified": "2023-10-12 10:51:50.914759",
+ "modified": "2023-11-25 14:06:53.758107",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Network Activity",
