@@ -29,7 +29,7 @@ class X:
 
         # Check if frappe.local.request.host exists
         host = getattr(getattr(frappe.local, "request", {}), "host", "")
-        self.redirect_uri = redirect_uri or (f"https://skedew.com/redirect" if host == "localhost:8000" else f"{protocol}://{host or domains[0]}/api/method/smm.libs.x.callback")
+        self.redirect_uri = redirect_uri or ("https://skedew.com/redirect" if host == "localhost:8000" else f"{protocol}://{host or domains[0]}/api/method/smm.libs.x.callback")
 
     def bearer(self):
         return f"Bearer {self._access_token}"
@@ -180,8 +180,8 @@ def authorize(**args):
 def callback(**args):
     error, state, code = args.get("error"), args.get("state"), args.get("code")
     if error:
-        redirect_url = f"/app/agent"
-        frappe.local.response.update({"type": "redirect", "location": redirect_url, "message": f"Redirecting to Agent"})
+        redirect_url = "/app/agent"
+        frappe.local.response.update({"type": "redirect", "location": redirect_url, "message": _("Redirecting to {0}").format(_("Agent"))})
         return
     if state and code:
         data = frappe.cache().get_value(state)
@@ -279,7 +279,7 @@ def profile(**args):
 
     profile = response.json().get("data")
 
-    frappe.get_doc("Agent", name).update({"alias": profile.get("username"), "picture": profile.get("profile_image_url")}).save()
+    frappe.get_doc("Agent", name).update({"uid": profile.get("id"), "display_name": profile.get("name"), "alias": profile.get("username"), "picture": profile.get("profile_image_url")}).save()
 
     frappe.db.commit()
 

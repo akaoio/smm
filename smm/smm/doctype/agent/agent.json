@@ -21,7 +21,9 @@
   "api",
   "provider",
   "authorize_x",
+  "display_name",
   "alias",
+  "uid",
   "picture",
   "access_token",
   "refresh_token"
@@ -82,7 +84,6 @@
    "in_filter": 1,
    "in_list_view": 1,
    "in_preview": 1,
-   "in_standard_filter": 1,
    "label": "Title"
   },
   {
@@ -92,10 +93,26 @@
    "in_filter": 1,
    "in_list_view": 1,
    "in_preview": 1,
-   "in_standard_filter": 1,
    "label": "Alias",
-   "mandatory_depends_on": "eval: ['Telegram Bot'].includes(doc.provider)",
-   "search_index": 1
+   "mandatory_depends_on": "eval: ['Telegram Bot'].includes(doc.provider)"
+  },
+  {
+   "depends_on": "eval: ['Telegram Bot', 'X'].includes(doc.provider)",
+   "fieldname": "uid",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Unique ID"
+  },
+  {
+   "depends_on": "eval: ['Telegram Bot', 'X'].includes(doc.provider)",
+   "fieldname": "display_name",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Display Name"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -105,7 +122,7 @@
    "link_fieldname": "agent"
   }
  ],
- "modified": "2023-11-22 17:47:08.378697",
+ "modified": "2023-11-25 19:27:08.170105",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Agent",
