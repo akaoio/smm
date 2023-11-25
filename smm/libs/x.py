@@ -225,7 +225,7 @@ def callback(**args):
                 profile(name=doc.name)
 
                 redirect_url = f"/app/agent/{doc.name}"
-                frappe.local.response.update({"type": "redirect", "location": redirect_url, "message": f"Redirecting to Agent {doc.name}"})
+                frappe.local.response.update({"type": "redirect", "location": redirect_url, "message": _("Redirecting to {0} {1}").format(_("Agent"), doc.name)})
 
         # Delete frappe cache to release memory
         frappe.cache().delete_value(state)
