@@ -6,9 +6,9 @@
    "label": "Get Profile"
   },
   {
-   "action": "smm.libs.x.refresh_token",
+   "action": "smm.libs.x.refresh_access_token",
    "action_type": "Server Action",
-   "label": "Refresh Token"
+   "label": "Refresh Access Token"
   }
  ],
  "creation": "2023-07-07 15:40:49.535984",
@@ -26,7 +26,11 @@
   "uid",
   "picture",
   "access_token",
-  "refresh_token"
+  "refresh_token",
+  "section_break_gnnn",
+  "profile",
+  "column_break_g0wy",
+  "refresh_access_token"
  ],
  "fields": [
   {
@@ -113,6 +117,26 @@
    "in_list_view": 1,
    "in_preview": 1,
    "label": "Display Name"
+  },
+  {
+   "depends_on": "eval: ['Telegram Bot', 'X'].includes(doc.provider)",
+   "fieldname": "profile",
+   "fieldtype": "Button",
+   "label": "Get Profile"
+  },
+  {
+   "fieldname": "column_break_g0wy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: ['X'].includes(doc.provider) && doc.access_token && doc.refresh_token",
+   "fieldname": "refresh_access_token",
+   "fieldtype": "Button",
+   "label": "Refresh Access Token"
+  },
+  {
+   "fieldname": "section_break_gnnn",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -122,7 +146,7 @@
    "link_fieldname": "agent"
   }
  ],
- "modified": "2023-11-25 19:27:08.170105",
+ "modified": "2023-11-26 11:55:55.259366",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Agent",

@@ -2,6 +2,9 @@ Agent,Đại diện
 Agents,Đại diện
 Agent Group,Nhóm Đại diện
 Agent Groups,Nhóm Đại diện
+Authorize X,Cấp quyền X
+Get Profile,Lấy Hồ sơ
+Refresh Token,Làm mới Token
 Provider,Nguồn cấp
 Feed Provider,Nguồn cấp Dữ liệu
 Feed Providers,Nguồn cấp Dữ liệu
@@ -49,6 +52,8 @@ Shares,Chia sẻ
 Quotes,Trích
 Geek,Mọt công nghệ
 Statistics,Thống kê
+Unique ID,ID riêng
+Display Name,Tên Hiển thị
 {0} {1} does not exist,{0} {1} không tồn tại
 {0} {1} is disabled,{0} {1} đã tắt
 {0} is empty,{0} trống

@@ -120,7 +120,7 @@ class X:
         )
 
     # Refresh access token
-    def refresh_token(self, token=None):
+    def refresh_access_token(self, token=None):
         token = token or self._refresh_token
         if not token:
             return
@@ -233,7 +233,7 @@ def callback(**args):
 
 
 @frappe.whitelist()
-def refresh_token(**args):
+def refresh_access_token(**args):
     name = utils.find(args, "name")
     if not name:
         frappe.msgprint(_("{0} name is empty").format(_("Agent")))
@@ -252,7 +252,7 @@ def refresh_token(**args):
 
     client = X(client_id, client_secret)
 
-    response = client.refresh_token(token)
+    response = client.refresh_access_token(token)
 
     if response.status_code == 200:
         response = response.json()

@@ -12,4 +12,24 @@ frappe.ui.form.on("Agent", {
       },
     });
   },
+  profile: (form) => {
+    frappe.call({
+      method: "smm.libs.x.authorize",
+      args: form.selected_doc,
+      callback: (response) => {
+        const { authorization_url } = response.message;
+        window.location = authorization_url;
+      },
+    });
+  },
+  refresh_access_token: (form) => {
+    frappe.call({
+      method: "smm.libs.x.authorize",
+      args: form.selected_doc,
+      callback: (response) => {
+        const { authorization_url } = response.message;
+        window.location = authorization_url;
+      },
+    });
+  }
 });
