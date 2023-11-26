@@ -342,7 +342,7 @@ def generate_content(**args):
         return doc
 
 
-@ frappe.whitelist()
+@frappe.whitelist()
 def cast(**args):
     name = utils.find(args, "name")
     if not name:

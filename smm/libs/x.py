@@ -18,8 +18,8 @@ class X:
         self.client_secret = client_secret
         self.scope = scope or ["tweet.read", "tweet.write", "tweet.moderate.write", "users.read", "follows.read", "follows.write", "offline.access", "space.read",
                                "mute.read", "mute.write", "like.read", "like.write", "list.read", "list.write", "block.read", "block.write", "bookmark.read", "bookmark.write"]
-        self._access_token = access_token
-        self._refresh_token = refresh_token
+        self.access_token = access_token
+        self.refresh_token = refresh_token
         self.authorization_type = authorization_type
         self.content_type = content_type
         self.state = None
@@ -32,7 +32,7 @@ class X:
         self.redirect_uri = redirect_uri or ("https://skedew.com/redirect" if host == "localhost:8000" else f"{protocol}://{host or domains[0]}/api/method/smm.libs.x.callback")
 
     def bearer(self):
-        return f"Bearer {self._access_token}"
+        return f"Bearer {self.access_token}"
 
     def basic(self):
         return f"Basic {base64.b64encode(f'{self.client_id}:{self.client_secret}'.encode('utf-8')).decode('utf-8')}"
@@ -121,7 +121,7 @@ class X:
 
     # Refresh access token
     def refresh_access_token(self, token=None):
-        token = token or self._refresh_token
+        token = token or self.refresh_token
         if not token:
             return
 

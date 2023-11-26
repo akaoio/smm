@@ -14,22 +14,14 @@ frappe.ui.form.on("Agent", {
   },
   profile: (form) => {
     frappe.call({
-      method: "smm.libs.x.authorize",
-      args: form.selected_doc,
-      callback: (response) => {
-        const { authorization_url } = response.message;
-        window.location = authorization_url;
-      },
+      method: "smm.libs.agent.profile",
+      args: form.selected_doc
     });
   },
   refresh_access_token: (form) => {
     frappe.call({
-      method: "smm.libs.x.authorize",
-      args: form.selected_doc,
-      callback: (response) => {
-        const { authorization_url } = response.message;
-        window.location = authorization_url;
-      },
+      method: "smm.libs.agent.refresh_access_token",
+      args: form.selected_doc
     });
   }
 });

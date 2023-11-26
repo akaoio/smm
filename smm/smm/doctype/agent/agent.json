@@ -129,7 +129,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: ['X'].includes(doc.provider) && doc.access_token && doc.refresh_token",
+   "depends_on": "eval: doc.provider == 'X' && doc.access_token && doc.refresh_token",
    "fieldname": "refresh_access_token",
    "fieldtype": "Button",
    "label": "Refresh Access Token"
