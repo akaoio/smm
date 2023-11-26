@@ -1,12 +1,12 @@
 {
  "actions": [
   {
-   "action": "smm.libs.x.profile",
+   "action": "smm.libs.agent.profile",
    "action_type": "Server Action",
    "label": "Get Profile"
   },
   {
-   "action": "smm.libs.x.refresh_access_token",
+   "action": "smm.libs.agent.refresh_access_token",
    "action_type": "Server Action",
    "label": "Refresh Access Token"
   }
