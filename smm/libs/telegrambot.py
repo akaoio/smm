@@ -28,6 +28,25 @@ class TelegramBot:
 
 
 @frappe.whitelist()
+def profile(**args):
+    name = utils.find(args, "name")
+    agent = utils.find(args, "agent") or frappe.get_doc("Agent", name)
+    api = frappe.get_doc("API", agent.get("api"))
+    token = api.get_password("token") or None
+    client = TelegramBot(token=token)
+    response = client.request(endpoint="/getChat", params={"chat_id": agent.get("alias")})
+    profile = response.json().get("data")
+    display_name = profile.get("title") if profile.get("type") in ["group", "supergroup", "channel"] else f"{profile.get('first_name')} {profile.get('last_name')}" if profile.get("first_name") and profile.get("last_name") else profile.get("first_name") if profile.get("first_name") else profile.get("last_name") if profile.get("last_name") else profile.get("username")
+    picture_file = profile.get("photo").get("big_file_id") if profile.get("photo") else None
+    picture_url = None
+    if picture_file:
+        picture = client.request(endpoint="/getFile", params={"file_id": picture_file})
+        picture_url = client.request(method="GET", url=picture.json().get("data").get("file_path"), request=False)
+    frappe.get_doc("Agent", name).update({"uid": profile.get("id"), "display_name": display_name, "alias": profile.get("username"), "picture": picture_url}).save()
+    frappe.db.commit()
+
+
+@frappe.whitelist()
 def send(**args):
     name = utils.find(args, "name")
     agent = utils.find(args, "agent") or frappe.get_doc("Agent", name)
