@@ -20,17 +20,13 @@
   "title",
   "api",
   "provider",
-  "authorize_x",
+  "authorize",
   "display_name",
   "alias",
   "uid",
   "picture",
   "access_token",
-  "refresh_token",
-  "section_break_gnnn",
-  "profile",
-  "column_break_g0wy",
-  "refresh_access_token"
+  "refresh_token"
  ],
  "fields": [
   {
@@ -41,12 +37,6 @@
    "options": "API",
    "reqd": 1,
    "search_index": 1
-  },
-  {
-   "depends_on": "eval: doc.provider === 'X'",
-   "fieldname": "authorize_x",
-   "fieldtype": "Button",
-   "label": "Authorize X"
   },
   {
    "depends_on": "eval: doc.provider === 'X'",
@@ -119,24 +109,10 @@
    "label": "Display Name"
   },
   {
-   "depends_on": "eval: ['Telegram Bot', 'X'].includes(doc.provider)",
-   "fieldname": "profile",
+   "depends_on": "eval: doc.provider === 'X'",
+   "fieldname": "authorize",
    "fieldtype": "Button",
-   "label": "Get Profile"
-  },
-  {
-   "fieldname": "column_break_g0wy",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval: doc.provider == 'X' && doc.access_token && doc.refresh_token",
-   "fieldname": "refresh_access_token",
-   "fieldtype": "Button",
-   "label": "Refresh Access Token"
-  },
-  {
-   "fieldname": "section_break_gnnn",
-   "fieldtype": "Section Break"
+   "label": "Authorize"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -146,7 +122,7 @@
    "link_fieldname": "agent"
   }
  ],
- "modified": "2023-11-26 11:55:55.259366",
+ "modified": "2023-11-27 13:19:33.259020",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Agent",

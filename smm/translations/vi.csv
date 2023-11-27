@@ -4,7 +4,10 @@ Agent Group,Nhóm Đại diện
 Agent Groups,Nhóm Đại diện
 Authorize X,Cấp quyền X
 Get Profile,Lấy Hồ sơ
-Refresh Token,Làm mới Token
+Client ID,Client ID
+Client Secret,Client Secret
+Refresh Token,Làm mới Vé
+Refresh Access Token,Làm mới Vé Truy cập
 Provider,Nguồn cấp
 Feed Provider,Nguồn cấp Dữ liệu
 Feed Providers,Nguồn cấp Dữ liệu
@@ -29,7 +32,9 @@ Title,Tiêu đề
 Description,Mô tả
 Fetch,Truy xuất
 Fetched,Đã truy xuất
-Token,Token
+Token,Vé
+Access Token,Vé Truy cập
+Refresh Token,Vé Làm mới
 Client ID,Client ID
 Client Secret,Client Secret
 Schedule,Lịch trình

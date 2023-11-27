@@ -40,13 +40,7 @@ def profile(**args):
     
     client = TelegramBot(token=token)
 
-    params = {"chat_id": alias}
-
-    response = client.request(
-        method="GET",
-        endpoint="/getChat",
-        params={"chat_id": alias}
-    )
+    response = client.request(method="GET", endpoint="/getChat", params={"chat_id": alias})
 
     profile = response.json().get("result")
     
@@ -54,8 +48,8 @@ def profile(**args):
     picture_id = profile.get("photo").get("big_file_id") if profile.get("photo") else None
     picture_url = None
     if picture_id:
-        picture = client.request(endpoint="/getFile", params={"file_id": picture_id})
-        picture_url = client.request(method="GET", url=picture.json().get("result").get("file_path"), request=False)
+        picture = client.request(method="GET", endpoint="/getFile", params={"file_id": picture_id})
+        picture_url = client.request(method="GET", endpoint="/" + picture.json().get("result").get("file_path"), request=False)
     if profile.get("id") and display_name:
         frappe.get_doc("Agent", name).update({"uid": profile.get("id"), "display_name": display_name, "alias": profile.get("username"), "picture": picture_url}).save()
         frappe.db.commit()
@@ -82,8 +76,5 @@ def send(**args):
     if linked_external_id:
         params.update({"reply_to_message_id": linked_external_id})
 
-    response = client.request(
-        endpoint="/sendMessage",
-        params=params,
-    )
+    response = client.request(endpoint="/sendMessage", params=params)
     return response

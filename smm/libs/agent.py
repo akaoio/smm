@@ -1,9 +1,9 @@
 import frappe
 from frappe import _
-from . import utils, x, telegrambot
+from . import utils, x, telegrambot, openai
 
 
-def selector(**args):
+def call(method, **args):
     name = utils.find(args, "name")
     if not name:
         return
@@ -11,6 +11,7 @@ def selector(**args):
     agent = frappe.get_doc("Agent", name)
 
     clients = {
+        "OpenAI": openai,
         "Telegram Bot": telegrambot,
         "X": x
     }
@@ -18,16 +19,23 @@ def selector(**args):
     if not client:
         return
     
+    # Check if client has method and method is a function
+    if hasattr(client, method) and callable(getattr(client, method)):
+        return getattr(client, method)(**args)
+    
     return client
 
 
 @frappe.whitelist()
+def authorize(**args):
+    return call("authorize", **args)
+
+
+@frappe.whitelist()
 def profile(**args):
-    client = selector(**args)
-    return client.profile(**args)
+    return call("profile", **args)
 
 
 @frappe.whitelist()
 def refresh_access_token(**args):
-    client = selector(**args)
-    return client.refresh_access_token(**args)
+    return call("refresh_access_token", **args)

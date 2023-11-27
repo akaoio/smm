@@ -269,7 +269,7 @@ class ActivityPlan:
                                 # Check if the field has its own query function
                                 # This is used when the query is more complex than just getting the list of linked items
                                 # The function must return an array of linked items
-                                if field.get("query") is not None and hasattr(self, field.get("query")):
+                                if field.get("query") is not None and hasattr(self, field.get("query")) and callable(getattr(self, field.get("query"))):
                                     children = getattr(self, field.get("query"))(context)
                                 
                                 # If the field doesn't have its own query function, generate filters from context and get the list of linked items
