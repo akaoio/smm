@@ -278,10 +278,12 @@ def profile(**args):
     )
 
     profile = response.json().get("data")
-
-    public_metrics = profile.get("public_metrics")
-    audience_size = public_metrics.get("followers_count") if public_metrics else None
-
+    
+    audience_size = doc.get("audience_size")
+    if profile.get("public_metrics"):
+        public_metrics = profile.get("public_metrics") or {}
+        audience_size = public_metrics.get("followers_count") if public_metrics.get("followers_count") else None
+    
     frappe.get_doc("Agent", name).update({"uid": profile.get("id"), "display_name": profile.get("name"), "alias": profile.get("username"), "description": profile.get("description"), "picture": profile.get("profile_image_url"), "audience_size": audience_size}).save()
 
     frappe.db.commit()
