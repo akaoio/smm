@@ -127,27 +127,9 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Intelligence",
-   "link_count": 1,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Statistic",
-   "link_count": 0,
-   "link_to": "Statistic",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
   }
  ],
- "modified": "2023-11-28 20:31:34.061935",
+ "modified": "2023-11-29 10:55:52.698524",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "SMM",
