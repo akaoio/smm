@@ -24,7 +24,9 @@
   "display_name",
   "alias",
   "uid",
+  "description",
   "picture",
+  "audience_size",
   "access_token",
   "refresh_token"
  ],
@@ -53,6 +55,7 @@
    "length": 500
   },
   {
+   "depends_on": "eval: ['Telegram Bot', 'X'].includes(doc.provider)",
    "fieldname": "picture",
    "fieldtype": "Data",
    "label": "Picture",
@@ -113,6 +116,20 @@
    "fieldname": "authorize",
    "fieldtype": "Button",
    "label": "Authorize"
+  },
+  {
+   "depends_on": "eval: ['Telegram Bot', 'X'].includes(doc.provider)",
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "in_filter": 1,
+   "in_preview": 1,
+   "label": "Description"
+  },
+  {
+   "depends_on": "eval: ['Telegram Bot', 'X'].includes(doc.provider)",
+   "fieldname": "audience_size",
+   "fieldtype": "Int",
+   "label": "Audience Size"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -122,7 +139,7 @@
    "link_fieldname": "agent"
   }
  ],
- "modified": "2023-11-27 13:19:33.259020",
+ "modified": "2023-11-29 10:37:37.950868",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Agent",

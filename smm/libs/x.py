@@ -279,7 +279,10 @@ def profile(**args):
 
     profile = response.json().get("data")
 
-    frappe.get_doc("Agent", name).update({"uid": profile.get("id"), "display_name": profile.get("name"), "alias": profile.get("username"), "picture": profile.get("profile_image_url")}).save()
+    public_metrics = profile.get("public_metrics")
+    audience_size = public_metrics.get("followers_count") if public_metrics else None
+
+    frappe.get_doc("Agent", name).update({"uid": profile.get("id"), "display_name": profile.get("name"), "alias": profile.get("username"), "description": profile.get("description"), "picture": profile.get("profile_image_url"), "audience_size": audience_size}).save()
 
     frappe.db.commit()
 
@@ -298,9 +301,11 @@ def send(**args):
 
     params = {"text": text}
     if linked_external_id:
-        params.update({"reply": {
-            "in_reply_to_tweet_id": linked_external_id,
-        }})
+        params.update({
+            "reply": {
+                "in_reply_to_tweet_id": linked_external_id
+            }
+        })
 
     response = client.request(
         "POST",

@@ -1,9 +1,21 @@
+Integrations,Tích hợp
+Management,Quản lý
+Intelligence,Trí tuệ
+Statistic,Thống kê
+Statistics,Thống kê
+Analytic,Phân tích
+Analytics,Phân tích
+Insight,Hiểu biết
+Insights,Hiểu biết
 Agent,Đại diện
 Agents,Đại diện
 Agent Group,Nhóm Đại diện
 Agent Groups,Nhóm Đại diện
 Authorize X,Cấp quyền X
+Authorize,Cấp quyền
 Get Profile,Lấy Hồ sơ
+Audience Size,Kích thước Đối tượng
+Audience,Đối tượng
 Client ID,Client ID
 Client Secret,Client Secret
 Refresh Token,Làm mới Vé

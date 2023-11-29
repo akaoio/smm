@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"1e7SPreQbw\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Social Media Management</span>\",\"col\":12}},{\"id\":\"kd2zDikHA_\",\"type\":\"card\",\"data\":{\"card_name\":\"Integrations\",\"col\":4}},{\"id\":\"FI_J7IOaBu\",\"type\":\"card\",\"data\":{\"card_name\":\"Management\",\"col\":4}}]",
+ "content": "[{\"id\":\"1e7SPreQbw\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Social Media Management</span>\",\"col\":12}},{\"id\":\"kd2zDikHA_\",\"type\":\"card\",\"data\":{\"card_name\":\"Integrations\",\"col\":4}},{\"id\":\"FI_J7IOaBu\",\"type\":\"card\",\"data\":{\"card_name\":\"Management\",\"col\":4}},{\"id\":\"OgEVX99Y5J\",\"type\":\"card\",\"data\":{\"card_name\":\"Intelligence\",\"col\":4}}]",
  "creation": "2023-07-07 13:18:48.470781",
  "custom_blocks": [],
  "docstatus": 0,
@@ -127,9 +127,27 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Intelligence",
+   "link_count": 1,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Statistic",
+   "link_count": 0,
+   "link_to": "Statistic",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2023-11-27 14:34:42.770316",
+ "modified": "2023-11-28 20:31:34.061935",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "SMM",
