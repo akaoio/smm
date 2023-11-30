@@ -105,19 +105,20 @@ class Facebook:
             return
 
         return self.request(
-            "POST",
+            "GET",
             endpoint="/v18.0/oauth/access_token",
             params={
                 "grant_type": "authorization_code",
                 "code": code,
                 "client_id": self.client_id,
+                "client_secret": self.client_secret,
                 "code_verifier": code_verifier,
                 "redirect_uri": redirect_uri or self.redirect_uri
             },
-            headers={
-                "authorization_type": "Basic",
-                "content_type": "urlencoded"
-            }
+            # headers={
+            #     "authorization_type": "Basic",
+            #     "content_type": "urlencoded"
+            # }
         )
 
     # Refresh access token
