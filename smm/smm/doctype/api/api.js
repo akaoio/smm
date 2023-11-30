@@ -7,17 +7,26 @@ frappe.ui.form.on("API", {
 
     fields = {
       website: website,
-      redirect_uri: website + "/api/method/smm.libs.x.callback",
+      //   redirect_uri: website + "/api/method/smm.libs.x.callback",
       terms_of_services: website + "/terms-of-services",
       privacy_policy: website + "/privacy-policy",
     };
 
+    modules = {
+      'X': 'x',
+      'Facebook': 'facebook'
+    }
+
     const toggleFields = (item) => {
       provider = item ? item?.target?.value : form.doc.provider;
-      visibility = provider == "X" ? true : false;
+      visibility = ['X', 'Facebook'].includes(provider) ? true : false;
+      fields['redirect_uri'] = ['X', 'Facebook'].includes(provider) ? `${website}/api/method/smm.libs.${modules[provider]}.callback` : null
       for (let field in fields) {
+        // Toggle field visibility
         form.fields_dict[field].$wrapper.toggle(visibility);
+        // Set field data
         form.doc[field] = fields[field];
+        // Rerender field
         form.fields_dict[field].refresh();
       }
     };

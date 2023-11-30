@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from . import utils, x, telegrambot, openai
+from . import utils, x, facebook, telegrambot, openai
 
 
 def call(method, **args):
@@ -17,7 +17,8 @@ def call(method, **args):
     clients = {
         "OpenAI": openai,
         "Telegram Bot": telegrambot,
-        "X": x
+        "X": x,
+        "Facebook": facebook
     }
     client = clients.get(provider)
     

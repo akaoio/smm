@@ -41,21 +41,21 @@
    "search_index": 1
   },
   {
-   "depends_on": "eval: doc.provider === 'X'",
+   "depends_on": "eval: ['X', 'Facebook'].includes(doc.provider)",
    "fieldname": "access_token",
    "fieldtype": "Password",
    "label": "Access Token",
    "length": 500
   },
   {
-   "depends_on": "eval: doc.provider === 'X'",
+   "depends_on": "eval: ['X', 'Facebook'].includes(doc.provider)",
    "fieldname": "refresh_token",
    "fieldtype": "Password",
    "label": "Refresh Token",
    "length": 500
   },
   {
-   "depends_on": "eval: ['Telegram Bot', 'X'].includes(doc.provider)",
+   "depends_on": "eval: ['Telegram Bot', 'X', 'Facebook'].includes(doc.provider)",
    "fieldname": "picture",
    "fieldtype": "Data",
    "label": "Picture",
@@ -84,7 +84,7 @@
    "label": "Title"
   },
   {
-   "depends_on": "eval: ['Telegram Bot', 'X'].includes(doc.provider)",
+   "depends_on": "eval: ['Telegram Bot', 'X', 'Facebook'].includes(doc.provider)",
    "fieldname": "alias",
    "fieldtype": "Data",
    "in_filter": 1,
@@ -94,7 +94,7 @@
    "mandatory_depends_on": "eval: ['Telegram Bot'].includes(doc.provider)"
   },
   {
-   "depends_on": "eval: ['Telegram Bot', 'X'].includes(doc.provider)",
+   "depends_on": "eval: ['Telegram Bot', 'X', 'Facebook'].includes(doc.provider)",
    "fieldname": "uid",
    "fieldtype": "Data",
    "in_filter": 1,
@@ -103,7 +103,7 @@
    "label": "Unique ID"
   },
   {
-   "depends_on": "eval: ['Telegram Bot', 'X'].includes(doc.provider)",
+   "depends_on": "eval: ['Telegram Bot', 'X', 'Facebook'].includes(doc.provider)",
    "fieldname": "display_name",
    "fieldtype": "Data",
    "in_filter": 1,
@@ -112,13 +112,13 @@
    "label": "Display Name"
   },
   {
-   "depends_on": "eval: doc.provider === 'X'",
+   "depends_on": "eval: ['X', 'Facebook'].includes(doc.provider)",
    "fieldname": "authorize",
    "fieldtype": "Button",
    "label": "Authorize"
   },
   {
-   "depends_on": "eval: ['Telegram Bot', 'X'].includes(doc.provider)",
+   "depends_on": "eval: ['Telegram Bot', 'X', 'Facebook'].includes(doc.provider)",
    "fieldname": "description",
    "fieldtype": "Text",
    "in_filter": 1,
@@ -126,7 +126,7 @@
    "label": "Description"
   },
   {
-   "depends_on": "eval: ['Telegram Bot', 'X'].includes(doc.provider)",
+   "depends_on": "eval: ['Telegram Bot', 'X', 'Facebook'].includes(doc.provider)",
    "fieldname": "audience_size",
    "fieldtype": "Int",
    "label": "Audience Size"
