@@ -106,7 +106,7 @@ class Facebook:
 
         return self.request(
             "POST",
-            endpoint="/2/oauth2/token",
+            endpoint="/v18.0/oauth/access_token",
             params={
                 "grant_type": "authorization_code",
                 "code": code,
@@ -128,7 +128,7 @@ class Facebook:
 
         return self.request(
             "POST",
-            endpoint="/2/oauth2/token",
+            endpoint="/v18.0/oauth/access_token",
             params={
                 "grant_type": "refresh_token",
                 "refresh_token": token,
