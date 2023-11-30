@@ -15,7 +15,7 @@ class Facebook:
     def __init__(self, client_id=None, client_secret=None, redirect_uri=None, access_token=None, refresh_token=None, scope=[], authorization_type="Bearer", content_type="json"):
         self.base_url = "https://graph.facebook.com"
         # https://www.facebook.com/v18.0/dialog/oauth?client_id={app-id}&redirect_uri={redirect-uri}&state={state-param}
-        self.auth_url = "https://graph.facebook.com/oauth/authorize"
+        self.auth_url = "https://www.facebook.com/v18.0/dialog/oauth"
         self.client_id = client_id
         self.client_secret = client_secret
         self.scope = scope or ["tweet.read", "tweet.write", "tweet.moderate.write", "users.read", "follows.read", "follows.write", "offline.access", "space.read",
