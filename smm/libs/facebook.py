@@ -18,8 +18,7 @@ class Facebook:
         self.auth_url = "https://www.facebook.com/v18.0/dialog/oauth"
         self.client_id = client_id
         self.client_secret = client_secret
-        self.scope = scope or ["tweet.read", "tweet.write", "tweet.moderate.write", "users.read", "follows.read", "follows.write", "offline.access", "space.read",
-                               "mute.read", "mute.write", "like.read", "like.write", "list.read", "list.write", "block.read", "block.write", "bookmark.read", "bookmark.write"]
+        self.scope = scope or ["public_profile", "email", "pages_manage_posts", "pages_manage_engagement", "publish_to_groups", "publish_video"]
         self.access_token = access_token
         self.refresh_token = refresh_token
         self.authorization_type = authorization_type
