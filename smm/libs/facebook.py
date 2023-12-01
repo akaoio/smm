@@ -274,11 +274,11 @@ def profile(**args):
     response = client.request(
         "GET",
         endpoint="/me",
-        params={"fields": "email,name,picture,followers"},
+        params={"fields": "email,name,picture"},
         headers={"authorization_type": "Bearer", "content_type": "json"}
     )
-
-    profile = response.json().get("data")
+    
+    profile = response.json()
     
     audience_size = doc.get("audience_size")
     # if profile.get("public_metrics"):
