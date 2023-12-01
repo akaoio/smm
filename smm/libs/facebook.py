@@ -233,35 +233,35 @@ def callback(**args):
     return args
 
 
-@frappe.whitelist()
-def refresh_access_token(**args):
-    name = utils.find(args, "name")
-    if not name:
-        frappe.msgprint(_("{0} name is empty").format(_("Agent")))
-        return
+# @frappe.whitelist()
+# def refresh_access_token(**args):
+#     name = utils.find(args, "name")
+#     if not name:
+#         frappe.msgprint(_("{0} name is empty").format(_("Agent")))
+#         return
 
-    doc = frappe.get_doc("Agent", name)
-    token = doc.get_password("refresh_token") or None
-    api = doc.get("api")
-    doc = frappe.get_doc("API", api)
-    client_id = doc.get_password("client_id") or None
-    client_secret = doc.get_password("client_secret") or None
+#     doc = frappe.get_doc("Agent", name)
+#     token = doc.get_password("refresh_token") or None
+#     api = doc.get("api")
+#     doc = frappe.get_doc("API", api)
+#     client_id = doc.get_password("client_id") or None
+#     client_secret = doc.get_password("client_secret") or None
 
-    if not client_id or not client_secret:
-        frappe.msgprint(_("Client ID or Client Secret or both not found"))
-        return
+#     if not client_id or not client_secret:
+#         frappe.msgprint(_("Client ID or Client Secret or both not found"))
+#         return
 
-    client = Facebook(client_id, client_secret)
+#     client = Facebook(client_id, client_secret)
 
-    response = client.refresh_access_token(token)
+#     response = client.refresh_access_token(token)
 
-    if response.status_code == 200:
-        response = response.json()
-        access_token, refresh_token = response.get("access_token"), response.get("refresh_token")
-        frappe.get_doc("Agent", name).update({"access_token": access_token, "refresh_token": refresh_token}).save()
-        frappe.db.commit()
+#     if response.status_code == 200:
+#         response = response.json()
+#         access_token, refresh_token = response.get("access_token"), response.get("refresh_token")
+#         frappe.get_doc("Agent", name).update({"access_token": access_token, "refresh_token": refresh_token}).save()
+#         frappe.db.commit()
 
-    return token
+#     return token
 
 
 @frappe.whitelist()
