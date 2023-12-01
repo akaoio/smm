@@ -14,7 +14,6 @@ from . import utils
 class Facebook:
     def __init__(self, client_id=None, client_secret=None, redirect_uri=None, access_token=None, refresh_token=None, scope=[], authorization_type="Bearer", content_type="json"):
         self.base_url = "https://graph.facebook.com"
-        # https://www.facebook.com/v18.0/dialog/oauth?client_id={app-id}&redirect_uri={redirect-uri}&state={state-param}
         self.auth_url = "https://graph.facebook.com/oauth/authorize"
         self.client_id = client_id
         self.client_secret = client_secret
@@ -55,7 +54,7 @@ class Facebook:
         }
 
     def verifier(self):
-        return re.sub("[^a-zA-Z0-9]+", "", base64.urlsafe_b64encode(os.urandom(30)).decode("utf-8"))
+        return re.sub("[^a-zA-Z0-9]+", "", base64.urlsafe_b64encode(os.urandom(64)).decode("utf-8"))
 
     def challenge(self, verifier):
         return base64.urlsafe_b64encode(hashlib.sha256(verifier.encode("utf-8")).digest()).decode("utf-8").replace("=", "")
@@ -106,10 +105,10 @@ class Facebook:
             return
 
         return self.request(
-            "GET",
-            endpoint="/v18.0/oauth/access_token",
+            "POST",
+            endpoint="/oauth/access_token",
             params={
-                #"grant_type": "authorization_code",
+                "grant_type": "authorization_code",
                 "code": code,
                 "client_id": self.client_id,
                 "code_verifier": code_verifier,
@@ -129,7 +128,7 @@ class Facebook:
 
         return self.request(
             "POST",
-            endpoint="/v18.0/oauth/access_token",
+            endpoint="/oauth/access_token",
             params={
                 "grant_type": "refresh_token",
                 "refresh_token": token,
@@ -198,11 +197,7 @@ def callback(**args):
             client_secret = session.get("client_secret") or doc.get_password("client_secret") or None
             code_verifier = session.get("code_verifier")
             client = Facebook(client_id, client_secret)
-            # TEST
-            return {code_verifier,client_id,client_secret}
             response = client.token(code_verifier=code_verifier, code=code)
-            # TEST
-            return {"tessst":response.text}
             if response.status_code == 200:
                 response = response.json()
                 if "access_token" not in response:
@@ -278,19 +273,19 @@ def profile(**args):
     client = Facebook(access_token=token)
     response = client.request(
         "GET",
-        endpoint="/2/users/me",
-        params={"user.fields": "created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,verified_type,withheld"},
+        endpoint="/me",
+        params={"fields": "email,name,picture,followers"},
         headers={"authorization_type": "Bearer", "content_type": "json"}
     )
 
     profile = response.json().get("data")
     
     audience_size = doc.get("audience_size")
-    if profile.get("public_metrics"):
-        public_metrics = profile.get("public_metrics") or {}
-        audience_size = public_metrics.get("followers_count") if public_metrics.get("followers_count") else None
+    # if profile.get("public_metrics"):
+    #     public_metrics = profile.get("public_metrics") or {}
+    #     audience_size = public_metrics.get("followers_count") if public_metrics.get("followers_count") else None
     
-    frappe.get_doc("Agent", name).update({"uid": profile.get("id"), "display_name": profile.get("name"), "alias": profile.get("username"), "description": profile.get("description"), "picture": profile.get("profile_image_url"), "audience_size": audience_size}).save()
+    frappe.get_doc("Agent", name).update({"uid": profile.get("id"), "display_name": profile.get("name")}).save()
 
     frappe.db.commit()
 
