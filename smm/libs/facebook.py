@@ -280,7 +280,7 @@ def profile(**args):
     
     profile = response.json()
     
-    audience_size = doc.get("audience_size")
+    # audience_size = doc.get("audience_size")
     # if profile.get("public_metrics"):
     #     public_metrics = profile.get("public_metrics") or {}
     #     audience_size = public_metrics.get("followers_count") if public_metrics.get("followers_count") else None

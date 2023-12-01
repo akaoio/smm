@@ -10,4 +10,5 @@ class Agent(Document):
         self.update_title()
 
     def update_title(self):
-        self.title = f"{self.alias} [{self.provider}]" if self.alias is not None else self.provider
+        name = self.alias or self.display_name
+        self.title = f"{name} [{self.provider}]" if name is not None else self.provider
