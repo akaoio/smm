@@ -18,7 +18,7 @@ class Facebook:
         self.auth_url = "https://www.facebook.com/v18.0/dialog/oauth"
         self.client_id = client_id
         self.client_secret = client_secret
-        self.scope = scope or ["public_profile", "email", "pages_manage_posts", "pages_manage_engagement", "publish_to_groups", "publish_video"]
+        self.scope = scope or ["openid", "public_profile", "email", "pages_manage_posts", "pages_manage_engagement", "publish_to_groups", "publish_video"]
         self.access_token = access_token
         self.refresh_token = refresh_token
         self.authorization_type = authorization_type
@@ -92,7 +92,8 @@ class Facebook:
             "scope": " ".join(scope),
             "state": state,
             "code_challenge": code_challenge,
-            "code_challenge_method": code_challenge_method
+            "code_challenge_method": code_challenge_method,
+            "nonce": self.verifier()
         }
 
         url = self.request("GET", url=self.auth_url, params=params, request=False)
@@ -108,17 +109,16 @@ class Facebook:
             "GET",
             endpoint="/v18.0/oauth/access_token",
             params={
-                "grant_type": "authorization_code",
+                #"grant_type": "authorization_code",
                 "code": code,
                 "client_id": self.client_id,
-                "client_secret": self.client_secret,
                 "code_verifier": code_verifier,
                 "redirect_uri": redirect_uri or self.redirect_uri
             },
-            # headers={
-            #     "authorization_type": "Basic",
-            #     "content_type": "urlencoded"
-            # }
+            headers={
+                "authorization_type": "Basic",
+                "content_type": "urlencoded"
+            }
         )
 
     # Refresh access token
@@ -134,8 +134,10 @@ class Facebook:
                 "grant_type": "refresh_token",
                 "refresh_token": token,
             },
-            headers={"authorization_type": "Basic",
-                     "content_type": "urlencoded"}
+            headers={
+                "authorization_type": "Basic",
+                "content_type": "urlencoded"
+            }
         )
 
 
@@ -196,9 +198,11 @@ def callback(**args):
             client_secret = session.get("client_secret") or doc.get_password("client_secret") or None
             code_verifier = session.get("code_verifier")
             client = Facebook(client_id, client_secret)
-
+            # TEST
+            return {code_verifier,client_id,client_secret}
             response = client.token(code_verifier=code_verifier, code=code)
-
+            # TEST
+            return {"tessst":response.text}
             if response.status_code == 200:
                 response = response.json()
                 if "access_token" not in response:
