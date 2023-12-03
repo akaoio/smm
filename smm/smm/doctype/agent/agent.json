@@ -30,7 +30,7 @@
   "access_token",
   "refresh_token",
   "groups_tab",
-  "groups"
+  "agent_groups"
  ],
  "fields": [
   {
@@ -134,15 +134,15 @@
    "label": "Audience Size"
   },
   {
-   "fieldname": "groups",
-   "fieldtype": "Table MultiSelect",
-   "label": "Groups",
-   "options": "Agent Group Item"
-  },
-  {
    "fieldname": "groups_tab",
    "fieldtype": "Tab Break",
    "label": "Groups"
+  },
+  {
+   "fieldname": "agent_groups",
+   "fieldtype": "Table MultiSelect",
+   "label": "Agent Groups",
+   "options": "Agent Group Item"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -152,7 +152,7 @@
    "link_fieldname": "agent"
   }
  ],
- "modified": "2023-12-02 18:30:33.559213",
+ "modified": "2023-12-03 16:42:06.666036",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Agent",

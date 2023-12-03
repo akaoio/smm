@@ -92,7 +92,7 @@ class ActivityPlan:
         agents = frappe.qb.from_(agent_group_item).select("parent").distinct().where(
             agent_group_item.agent_group.isin(agent_groups)
             & (agent_group_item.parenttype == "Agent")
-            & (agent_group_item.parentfield == "groups")
+            & (agent_group_item.parentfield == "agent_groups")
         ).run(as_dict=True)
         self.agents.update(frappe.get_doc("Agent", item.parent) for item in agents)
     
