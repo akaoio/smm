@@ -28,7 +28,9 @@
   "picture",
   "audience_size",
   "access_token",
-  "refresh_token"
+  "refresh_token",
+  "groups_tab",
+  "groups"
  ],
  "fields": [
   {
@@ -130,6 +132,17 @@
    "fieldname": "audience_size",
    "fieldtype": "Int",
    "label": "Audience Size"
+  },
+  {
+   "fieldname": "groups",
+   "fieldtype": "Table MultiSelect",
+   "label": "Groups",
+   "options": "Agent Group Item"
+  },
+  {
+   "fieldname": "groups_tab",
+   "fieldtype": "Tab Break",
+   "label": "Groups"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -139,7 +152,7 @@
    "link_fieldname": "agent"
   }
  ],
- "modified": "2023-11-29 10:37:37.950868",
+ "modified": "2023-12-02 18:30:33.559213",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Agent",

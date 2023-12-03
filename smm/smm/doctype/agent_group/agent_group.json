@@ -6,8 +6,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "title",
-  "agents"
+  "title"
  ],
  "fields": [
   {
@@ -17,18 +16,11 @@
    "in_list_view": 1,
    "label": "Title",
    "reqd": 1
-  },
-  {
-   "fieldname": "agents",
-   "fieldtype": "Table MultiSelect",
-   "label": "Agents",
-   "options": "Agent Item",
-   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-08-12 18:01:52.545512",
+ "modified": "2023-12-03 14:10:26.708234",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Agent Group",

@@ -84,9 +84,17 @@ class ActivityPlan:
         self.agents.update(frappe.get_doc("Agent", item.agent) for item in self.doc.agents)
 
         # Get agents from agent groups
-        for item in self.doc.agent_groups:
-            agent_group = frappe.get_doc("Agent Group", item.agent_group).agents
-            self.agents.update(frappe.get_doc("Agent", item.agent) for item in agent_group)
+        
+        # Generate an array of names of agent groups from self.doc.agent_groups
+        agent_groups = [item.agent_group for item in self.doc.agent_groups]
+        # Use query builder to get the list of agents from the agent groups array
+        agent_group_item = frappe.qb.DocType("Agent Group Item")
+        agents = frappe.qb.from_(agent_group_item).select("parent").distinct().where(
+            agent_group_item.agent_group.isin(agent_groups)
+            & (agent_group_item.parenttype == "Agent")
+            & (agent_group_item.parentfield == "groups")
+        ).run(as_dict=True)
+        self.agents.update(frappe.get_doc("Agent", item.parent) for item in agents)
     
 
     # This function is used to loop through each item of each array
