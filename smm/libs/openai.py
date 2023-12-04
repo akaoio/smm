@@ -94,27 +94,38 @@ def generate_content(**args):
 
     data = {
         "model": "gpt-3.5-turbo",
+        # "model": "gpt-4-turbo",
         "messages": prompts,
-        "functions": [
+        "n": 1,
+        "tools": [
             {
-                "name": "generate_content",
-                "description": "Create a content from given prompts and DATA. Returns `title` and `description`.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "title": {
-                            "type": "string",
-                            "description": "The shortest version of the content."
+                "type": "function",
+                "function": {
+                    "name": "generate_content",
+                    "description": "Create a content from given prompts and DATA. Returns `title` and `description`.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "title": {
+                                "type": "string",
+                                "description": "The shortest version of the content."
+                            },
+                            "description": {
+                                "type": "string",
+                                "description": "Content Description." + f" Maximum number of characters is {length}." if length and length > 0 else ""
+                            },
                         },
-                        "description": {
-                            "type": "string",
-                            "description": "Content Description." + f" Maximum number of characters is {length}." if length and length > 0 else ""
-                        },
-                    },
-                    "required": ["title", "description"]
+                        "required": ["title", "description"]
+                    }
                 }
             }
-        ]
+        ],
+        "tool_choice": {
+            "type": "function",
+            "function": {
+                "name": "generate_content"
+            }
+        }
     }
 
     response = client.request(endpoint="/v1/chat/completions", data=data)
@@ -127,7 +138,8 @@ def generate_content(**args):
         return response
 
     if response.status_code == 200:
-        message = random.choice(data.get("choices")).get("message").get("function_call").get("arguments")
+        choice = random.choice(data.get("choices"))
+        message = choice.get("message").get("tool_calls")[0].get("funtion").get("arguments")
         message = json.loads(message)
         title = message.get("title")
         title = utils.remove_mentions(title)
