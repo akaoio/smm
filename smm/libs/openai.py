@@ -139,7 +139,7 @@ def generate_content(**args):
 
     if response.status_code == 200:
         choice = random.choice(data.get("choices"))
-        message = choice.get("message").get("tool_calls")[0].get("funtion").get("arguments")
+        message = choice.get("message").get("tool_calls")[0].get("function").get("arguments")
         message = json.loads(message)
         title = message.get("title")
         title = utils.remove_mentions(title)
