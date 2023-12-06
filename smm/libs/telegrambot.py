@@ -42,6 +42,12 @@ def profile(**args):
 
     response = client.request(method="GET", endpoint="/getChat", params={"chat_id": alias})
 
+    data = response.json()
+
+    if not data.get("ok"):
+        if data.get("description"): frappe.msgprint(data.get("description"))
+        return response
+
     profile = response.json().get("result")
     
     display_name = profile.get("title") if profile.get("type") in ["group", "supergroup", "channel"] else f"{profile.get('first_name')} {profile.get('last_name')}" if profile.get("first_name") and profile.get("last_name") else profile.get("first_name") if profile.get("first_name") else profile.get("last_name") if profile.get("last_name") else profile.get("username")
