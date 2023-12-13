@@ -7,33 +7,16 @@ import xml.etree.ElementTree as ET
 from urllib.parse import urlparse, parse_qs
 from . import utils
 
-
 @frappe.whitelist()
 def fetch(**args):
-    name = utils.find(args, "name")
-    if not name:
-        frappe.msgprint(_("{0} name is empty").format(_("Feed Provider")))
-        return
-
     url = utils.find(args, "url")
-
-    if not frappe.db.exists("Feed Provider", name):
-        frappe.msgprint(_("{0} {1} does not exist").format(_("Feed Provider"), name))
-        return
-    
-    doc = frappe.get_doc("Feed Provider", name)
-    
-    owner = doc.owner or frappe.get_user().name
-    
     if not url:
-        url = doc.url
-
-    doc.update({"fetched": frappe.utils.now()}).save()
-    frappe.db.commit()
-    headers = {"Cache-Control": "no-cache"}
-    response = requests.get(url, headers=headers, timeout=10)
+        frappe.msgprint(_("{0} URL is empty").format(_("Feed Provider")))
+        return
+    feeds = []
+    response = requests.get(url, headers={"Cache-Control": "no-cache"}, timeout=10)
     if response.status_code != 200:
-        frappe.msgprint(_("Error fetching feed from {0}").format(url))
+        frappe.msgprint(_("Error fetching feeds from {0}").format(url))
         return
     elif response.status_code == 200:
         rss = parse(response.content.decode('utf-8'))
@@ -41,19 +24,14 @@ def fetch(**args):
             frappe.msgprint(_("No records found"))
             return
         for item in rss:
-            # Check if the feed already exists before inserting
-            feed = frappe.db.get_value("Feed", {"url": item.get("link")})
-            if not feed:
-                frappe.get_doc({
-                    "owner": owner,
-                    "doctype": "Feed",
-                    "provider": name,
-                    "title": item.get("title"),
-                    "description": item.get("content") or item.get("description"),
-                    "url": item.get("link")
-                }).insert()
-                frappe.db.commit()
-        return rss if rss is not None else None
+            feeds.append({
+                "title": item.get("title"),
+                "description": item.get("content") or item.get("description"),
+                "url": item.get("link")
+            })
+    # Must return in this format
+    return {"payload": {"url": url}, "response": response, "feeds": feeds}
+
 
 
 @frappe.whitelist()

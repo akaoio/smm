@@ -11,9 +11,11 @@ from . import utils
 
 
 class X:
-    def __init__(self, client_id=None, client_secret=None, redirect_uri=None, access_token=None, refresh_token=None, scope=[], authorization_type="Bearer", content_type="json"):
+    def __init__(self, consumer_id=None, consumer_secret=None, client_id=None, client_secret=None, redirect_uri=None, access_token=None, refresh_token=None, scope=[], authorization_type="Bearer", content_type="json"):
         self.base_url = "https://api.twitter.com"
         self.auth_url = "https://twitter.com/i/oauth2/authorize"
+        self.consumer_id = consumer_id
+        self.consumer_secret = consumer_secret
         self.client_id = client_id
         self.client_secret = client_secret
         self.scope = scope or ["tweet.read", "tweet.write", "tweet.moderate.write", "users.read", "follows.read", "follows.write", "offline.access", "space.read",
@@ -35,7 +37,8 @@ class X:
         return f"Bearer {self.access_token}"
 
     def basic(self):
-        return f"Basic {base64.b64encode(f'{self.client_id}:{self.client_secret}'.encode('utf-8')).decode('utf-8')}"
+        data = f"{self.client_id}:{self.client_secret}" if self.client_id and self.client_secret else f"{self.consumer_id}:{self.consumer_secret}" if self.consumer_id and self.consumer_secret else None
+        return f"Basic {base64.b64encode(data.encode('utf-8')).decode('utf-8')}"
 
     def authorization_header(self, type=None):
         type = type or self.authorization_type
@@ -132,8 +135,10 @@ class X:
                 "grant_type": "refresh_token",
                 "refresh_token": token,
             },
-            headers={"authorization_type": "Basic",
-                     "content_type": "urlencoded"}
+            headers={
+                "authorization_type": "Basic",
+                "content_type": "urlencoded"
+            }
         )
 
 
@@ -295,6 +300,7 @@ def profile(**args):
 def send(**args):
     name = utils.find(args, "name")
     agent = utils.find(args, "agent") or frappe.get_doc("Agent", name)
+    activity_type = utils.find(args, "type")
     text = utils.find(args, "text")
     token = agent.get_password("access_token") or None
     client = X(access_token=token)
@@ -303,11 +309,12 @@ def send(**args):
 
     params = {"text": text}
     if linked_external_id:
-        params.update({
-            "reply": {
-                "in_reply_to_tweet_id": linked_external_id
-            }
-        })
+        types = {
+            "Post Comment": {"reply": {"in_reply_to_tweet_id": linked_external_id}},
+            "Share Content": {"quote_tweet_id": linked_external_id}
+        }
+        param = types.get(activity_type)
+        params.update(param)
 
     response = client.request(
         "POST",
@@ -317,3 +324,24 @@ def send(**args):
     )
 
     return response
+
+# IMPORTANT: This function is under development and not working yet, because API needs to be upgraded to Basic tier, which is paid.
+# This function requires a paid API subscription
+@frappe.whitelist()
+def fetch(**args):
+    # bench --site erp.mimiza.com execute smm.libs.x.fetch --kwargs '{"keyword":"bitcoin","api":"2578e8f666"}'
+    name = utils.find(args, "name")
+    keyword = utils.find(args, "keyword")
+    # agent = frappe.get_doc("Agent", name or utils.find(args, "agent"))
+    api = utils.find(args, "api")
+    api = frappe.get_doc("API", api)
+    token = api.get_password("token") or None
+    print("token", token)
+    client = X(access_token=token)
+    response = client.request(
+        "GET",
+        endpoint="/2/tweets/search/recent",
+        params={"query": keyword},
+        headers={"authorization_type": "Bearer", "content_type": "json"}
+    )
+    print("\n", response.status_code, response.json())

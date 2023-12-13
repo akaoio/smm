@@ -27,6 +27,7 @@ Feed Provider,Nguồn cấp Dữ liệu
 Feed Providers,Nguồn cấp Dữ liệu
 Feed,Dữ liệu
 Feeds,Dữ liệu
+Data,Dữ liệu
 Content,Nội dung
 Content Mechanism,Cơ chế Nội dung
 Content Mechanisms,Cơ chế Nội dung
@@ -58,10 +59,11 @@ End Date,Ngày Kết thúc
 Start Time,Thời gian Bắt đầu
 End Time,Thời gian Kết thúc
 Duration,Thời lượng
-Post Content,Post Content
-Post Comment,Post Comment
+Post Content,Gửi Nội dung
+Post Comment,Gửi Bình luận
+Share Content,Chia sẻ Nội dung
 Picture,Hình ảnh
-Error fetching feed from {0},Lỗi truy xuất dữ liệu từ {0}
+Error fetching feeds from {0},Lỗi truy xuất dữ liệu từ {0}
 No records found,Không có bản ghi nào
 Invalid XML,XML không hợp lệ
 Client ID or Client Secret or both not found,Không tìm thấy Client ID hoặc Client Secret hoặc cả hai
@@ -77,6 +79,9 @@ Display Name,Tên Hiển thị
 {0} {1} is disabled,{0} {1} đã tắt
 {0} is empty,{0} trống
 {0} name is empty,Tên {0} trống
+{0} URL is empty,URL {0} trống
+"The duration between two fetch sessions.","Thời gian giữa hai phiên truy xuất."
+"Feed records will not be created, but instead stored in the Feeds field and updated on every fetch session.","Bản ghi cấp dữ liệu sẽ không được tạo ra, mà thay vào đó sẽ được lưu trữ trong trường Dữ liệu và được cập nhật trong mỗi phiên truy xuất."
 "These are the commands that will be provided to the AI Content Generator","Đây là các lệnh sẽ được cung cấp cho Trình Tạo Nội Dung AI"
 "The maximum number of letters of the content to be generated","Số ký tự tối đa của nội dung sẽ được tạo ra"
 "The maximum number of Feed entries to be collected from this Feed Provider per session","Số bản ghi Dữ liệu tối đa được lấy thu thập từ Nguồn cấp Dữ liệu này trên mỗi phiên"
@@ -86,3 +91,5 @@ Display Name,Tên Hiển thị
 "The Network Activity which this Network Activity responds to","Hoạt động Mạng mà Hoạt động Mạng này phản hồi tới"
 Redirecting to {0} {1},Đang chuyển hướng tới {0} {1}
 Redirecting to {0},Đang chuyển hướng tới {0}
+Agent to perform crawler fetch.,Agent để thực thi truy xuất dữ liệu
+API to perform crawler fetch.,API để thực thi truy xuất dữ liệu

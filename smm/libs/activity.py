@@ -7,7 +7,8 @@ import copy
 # Based on the type of Network Activity, the required fields are different
 requirements = {
     "Post Content": ["mechanism"],
-    "Post Comment": ["plan", "activity", "mechanism"]
+    "Post Comment": ["plan", "activity", "mechanism"],
+    "Share Content": ["plan", "activity", "mechanism"]
 }
 
 # Field properties
@@ -223,7 +224,7 @@ class ActivityPlan:
             frappe.db.commit()
             break
     
-    
+    # Custom query function for `plan` field
     def plan_query(self, context={}):
         doctype = frappe.qb.DocType(context.get("field").get("child_doctype"))
         plan = context.get("linked_item").get("plan")
@@ -232,7 +233,7 @@ class ActivityPlan:
         # Get the list of Network Activities created by the agent
         subquery = frappe.qb.from_(doctype).select(doctype.activity).distinct().where(
             (doctype.agent == agent) &
-            (doctype.type == "Post Comment") &
+            ["Post Comment", "Share Content"].includes(doctype.type) &
             doctype.status.isin(["Pending", "Success"])
         )
         
@@ -388,11 +389,15 @@ def cast(**args):
         "name": name,
         "agent": agent,
         "text": text,
+        "type": doc.type,
     }
 
     if linked_external_id:
         params.update({"linked_external_id": linked_external_id})
 
+    if not hasattr(client, "send") or not callable(getattr(client, "send")):
+        return
+    
     response = client.send(**params)
 
     # If type of response is dict and has json property
@@ -400,7 +405,7 @@ def cast(**args):
 
     # Always get nerd statistics.
     doc.update({
-        "payload": {"text": text},
+        "payload": params,
         "response": data,
         "response_status": response.status_code,
     })

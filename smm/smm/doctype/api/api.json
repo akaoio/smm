@@ -10,6 +10,8 @@
   "provider",
   "alias",
   "token",
+  "consumer_id",
+  "consumer_secret",
   "client_id",
   "client_secret",
   "redirect_uri",
@@ -32,7 +34,7 @@
    "search_index": 1
   },
   {
-   "depends_on": "eval: ['Telegram Bot', 'OpenAI'].includes(doc.provider)",
+   "depends_on": "eval: ['X', 'Telegram Bot', 'OpenAI'].includes(doc.provider)",
    "fieldname": "token",
    "fieldtype": "Password",
    "label": "Token",
@@ -101,6 +103,20 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Title"
+  },
+  {
+   "depends_on": "eval: ['X', 'Facebook'].includes(doc.provider)",
+   "fieldname": "consumer_id",
+   "fieldtype": "Password",
+   "label": "Consumer ID",
+   "mandatory_depends_on": "eval: ['Facebook'].includes(doc.provider)"
+  },
+  {
+   "depends_on": "eval: ['X', 'Facebook'].includes(doc.provider)",
+   "fieldname": "consumer_secret",
+   "fieldtype": "Password",
+   "label": "Consumer Secret",
+   "mandatory_depends_on": "eval: ['Facebook'].includes(doc.provider)"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -110,7 +126,7 @@
    "link_fieldname": "api"
   }
  ],
- "modified": "2023-11-30 16:49:37.269166",
+ "modified": "2023-12-13 13:50:22.660557",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "API",

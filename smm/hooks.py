@@ -8,7 +8,7 @@ app_license = "MIT"
 scheduler_events = {
     "all": [
         "smm.tasks.x.refresh_access_tokens",
-        "smm.tasks.rss.fetch_all",
+        "smm.tasks.feed.fetch_all",
         "smm.tasks.activity.process_plans",
         "smm.tasks.activity.process_activities",
         "smm.tasks.activity.cast_activities"

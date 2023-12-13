@@ -71,7 +71,7 @@
    "label": "End Time"
   },
   {
-   "depends_on": "eval: ['Post Content','Post Comment'].includes(doc.activity_type)",
+   "depends_on": "eval: ['Post Content','Post Comment','Share Content'].includes(doc.activity_type)",
    "fieldname": "content_sources",
    "fieldtype": "Section Break",
    "label": "Sources"
@@ -91,7 +91,7 @@
    "fieldname": "activity_type",
    "fieldtype": "Select",
    "label": "Activity Type",
-   "options": "Post Content\nPost Comment",
+   "options": "Post Content\nPost Comment\nShare Content",
    "reqd": 1
   },
   {
@@ -139,7 +139,7 @@
    "link_fieldname": "plan"
   }
  ],
- "modified": "2023-11-19 14:29:43.440798",
+ "modified": "2023-12-13 15:18:38.153386",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Network Activity Plan",

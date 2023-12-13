@@ -9,6 +9,7 @@ import os
 from urllib.parse import urlencode
 from . import utils
 
+# FACEBOOK MODULE IS UNDER DEVELOPMENT, THIS IS A COPY OF X.PY AND MANY PARTS ARE NOT IMPLEMENTED YET
 # READ THIS DOC: https://developers.facebook.com/docs/facebook-login/guides/advanced/manual-flow
 
 class Facebook:

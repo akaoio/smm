@@ -12,7 +12,7 @@ def find(args, key, default=None):
     data = args.get(key)
     return data if data is not None else (data := doc_data(args)) and data.get(key) if doc_data(args) else default
 
-
+# Get the duration between two datetime objects. Returns Integer.
 def duration(time, unit="second", format="%Y-%m-%d %H:%M:%S.%f"):
     time = datetime.strptime(time, format) if isinstance(time, str) else time if isinstance(time, datetime) else None
     return None if not isinstance(time, datetime) else int((datetime.now() - time).total_seconds() / 60) if unit == "minute" else int((datetime.now() - time).total_seconds())

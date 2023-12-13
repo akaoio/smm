@@ -159,6 +159,7 @@
    "in_filter": 1,
    "in_list_view": 1,
    "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Status",
    "options": "Pending\nSuccess\nFailed",
    "reqd": 1
@@ -190,7 +191,7 @@
    "link_fieldname": "activity"
   }
  ],
- "modified": "2023-11-25 14:06:53.758107",
+ "modified": "2023-12-11 15:28:58.741881",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Network Activity",
