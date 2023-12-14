@@ -157,7 +157,7 @@ def authorize(**args):
         frappe.msgprint(_("Client ID or Client Secret or both not found"))
         return
 
-    client = X(client_id)
+    client = X(client_id=client_id)
 
     url, state, code_verifier, code_challenge, code_challenge_method = client.authorize()
 
@@ -198,7 +198,7 @@ def callback(**args):
             client_id = session.get("client_id") or doc.get_password("client_id") or None
             client_secret = session.get("client_secret") or doc.get_password("client_secret") or None
             code_verifier = session.get("code_verifier")
-            client = X(client_id, client_secret)
+            client = X(client_id=client_id, client_secret=client_secret)
 
             response = client.token(code_verifier=code_verifier, code=code)
 
@@ -255,7 +255,7 @@ def refresh_access_token(**args):
         frappe.msgprint(_("Client ID or Client Secret or both not found"))
         return
 
-    client = X(client_id, client_secret)
+    client = X(client_id=client_id, client_secret=client_secret)
 
     response = client.refresh_access_token(token)
 

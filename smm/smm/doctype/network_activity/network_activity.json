@@ -191,7 +191,7 @@
    "link_fieldname": "activity"
   }
  ],
- "modified": "2023-12-11 15:28:58.741881",
+ "modified": "2023-12-13 16:12:04.028903",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Network Activity",
@@ -213,6 +213,19 @@
  "show_title_field_in_link": 1,
  "sort_field": "schedule",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Gray",
+   "title": "Pending"
+  },
+  {
+   "color": "Green",
+   "title": "Success"
+  },
+  {
+   "color": "Red",
+   "title": "Failed"
+  }
+ ],
  "title_field": "title"
 }

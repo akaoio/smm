@@ -233,7 +233,7 @@ class ActivityPlan:
         # Get the list of Network Activities created by the agent
         subquery = frappe.qb.from_(doctype).select(doctype.activity).distinct().where(
             (doctype.agent == agent) &
-            ["Post Comment", "Share Content"].includes(doctype.type) &
+            doctype.type.isin(["Post Comment", "Share Content"]) &
             doctype.status.isin(["Pending", "Success"])
         )
         
@@ -402,7 +402,7 @@ def cast(**args):
 
     # If type of response is dict and has json property
     data = response.json()
-
+    del params["agent"]
     # Always get nerd statistics.
     doc.update({
         "payload": params,
