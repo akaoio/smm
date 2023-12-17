@@ -1,4 +1,5 @@
 import frappe
+import json
 from frappe import _
 from . import rss, x, facebook, telegrambot, openai, utils
 
@@ -9,17 +10,22 @@ clients = {
     "Facebook": facebook
 }
 
+provider = _("Feed Provider")
+
 @frappe.whitelist()
+# debug: bench execute smm.libs.feed.fetch --kwargs '{"name":"6868b18b03"}'
 def fetch(**args):
     name = utils.find(args, "name")
     method = "fetch"
     
     if not name:
-        frappe.msgprint(_("{0} name is empty").format(_("Feed Provider")))
+        msg = _("{0} name is empty").format(provider)
+        frappe.msgprint(msg)
         return
 
     if not frappe.db.exists("Feed Provider", name):
-        frappe.msgprint(_("{0} {1} does not exist").format(_("Feed Provider"), name))
+        msg = _("{0} {1} does not exist").format(provider, name)
+        frappe.msgprint(msg)
         return
     
     doc = frappe.get_doc("Feed Provider", name)
@@ -36,19 +42,20 @@ def fetch(**args):
     if process:
         if process.get("payload") and process.get("response"):
             response = process.get("response")
+            request = response.request
             payload = {
-                "url": response.request.url,
-                "body": response.request.get("body") or {},
-                "params": response.request.get("params") or {},
+                "url": request.url,
+                "body": request.body if hasattr(request, "body") else {},
+                "params": request.params if hasattr(request, "params") else {},
                 **process.get("payload")
             }
             doc.update({
                 "payload": payload,
-                "response": response.json(),
+                "response": json.dumps({"content": response.content.decode("utf-8")}),
                 "response_status": response.status_code
             })
         if process.get("feeds") is not None and len(process.get("feeds")) > 0:
-            doc.update({"feeds": process.get("feeds")})
+            doc.update({"feeds": json.dumps(process.get("feeds"), indent=4)})
             if not doc.virtual:
                 for feed in process.get("feeds"):
                     # Check if the feed already exists before inserting
