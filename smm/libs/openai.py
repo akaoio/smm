@@ -75,16 +75,12 @@ def generate_content(**args):
     for item in feed_provider_list:
         feed_provider = frappe.get_doc("Feed Provider", item.feed_provider)
         # If feed provider is virtual, try to get feeds from the `feeds` field, which is a JSON array, then append to `feeds` list.
-        if feed_provider.virtual:
-            virtual_feeds = json.loads(feed_provider.feeds) if feed_provider.feeds else []
-            for virtual_feed in virtual_feeds:
-                content = join_data(**virtual_feed)
-                if content and content not in feeds: feeds.append(content)
-        else:
-            docs = frappe.db.get_list("Feed", filters={"provider": item.feed_provider}, fields=["name", "title", "description"], order_by="creation desc", limit_start=0, limit_page_length=item.limit)
-            for doc in docs:
-                content = join_data(**doc)
-                if content and content not in feeds: feeds.append(content)
+        # Else get feeds from the database.
+        docs = json.loads(feed_provider.feeds) if feed_provider.feeds and feed_provider.virtual else frappe.db.get_list("Feed", filters={"provider": item.feed_provider}, fields=["name", "title", "description"], order_by="creation desc", limit_start=0, limit_page_length=20)
+        if item.limit and len(docs) > item.limit: docs = random.sample(docs, item.limit)
+        for doc in docs:
+            content = join_data(**doc)
+            if content and content not in feeds: feeds.append(content)
 
     for item in feed_list:
         doc = frappe.get_doc("Feed", item.feed)
