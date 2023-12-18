@@ -60,7 +60,7 @@ def generate_content(**args):
         linked_activity_doc = frappe.get_doc("Network Activity", activity)
         if linked_activity_doc.content:
             linked_content_doc = frappe.get_doc("Content", linked_activity_doc.content)
-            content = join_data(linked_content_doc)
+            content = join_data(**linked_content_doc)
             if content and content not in feeds:
                 feeds.append(content)
 
@@ -78,17 +78,17 @@ def generate_content(**args):
         if feed_provider.virtual:
             virtual_feeds = json.loads(feed_provider.feeds) if feed_provider.feeds else []
             for virtual_feed in virtual_feeds:
-                content = join_data(virtual_feed)
-                if content and content not in feeds: feeds.append(join_data(content))
+                content = join_data(**virtual_feed)
+                if content and content not in feeds: feeds.append(content)
         else:
             docs = frappe.db.get_list("Feed", filters={"provider": item.feed_provider}, fields=["name", "title", "description"], order_by="creation desc", limit_start=0, limit_page_length=item.limit)
             for doc in docs:
-                content = join_data(doc)
+                content = join_data(**doc)
                 if content and content not in feeds: feeds.append(content)
 
     for item in feed_list:
         doc = frappe.get_doc("Feed", item.feed)
-        content = join_data(doc)
+        content = join_data(**doc)
         if content and content not in feeds: feeds.append(content)
 
     for item in prompt_list:
