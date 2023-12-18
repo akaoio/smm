@@ -18,3 +18,4 @@ def fetch_all():
             # Update fetched datetime
             frappe.db.set_value("Feed Provider", feed_provider.name, "fetched", datetime.datetime.now())
             frappe.db.commit()
+    return feed_providers

@@ -10,7 +10,7 @@ clients = {
     "Facebook": facebook
 }
 
-provider = _("Feed Provider")
+feed_provider_locale = _("Feed Provider")
 
 @frappe.whitelist()
 # debug: bench execute smm.libs.feed.fetch --kwargs '{"name":"6868b18b03"}'
@@ -19,20 +19,27 @@ def fetch(**args):
     method = "fetch"
     
     if not name:
-        msg = _("{0} name is empty").format(provider)
+        msg = _("{0} name is empty").format(feed_provider_locale)
         frappe.msgprint(msg)
         return
 
     if not frappe.db.exists("Feed Provider", name):
-        msg = _("{0} {1} does not exist").format(provider, name)
+        msg = _("{0} {1} does not exist").format(feed_provider_locale, name)
         frappe.msgprint(msg)
         return
     
     doc = frappe.get_doc("Feed Provider", name)
-
+    
+    if not doc.enabled:
+        return
+    
     owner = doc.owner or frappe.get_user().name
-
-    client = rss if doc.type == "RSS" else clients.get(frappe.get_doc("API", doc.api).provider) if doc.type == "Crawler" else None
+    
+    agent = frappe.get_doc("Agent", doc.agent) if doc.agent else None
+    
+    api = frappe.get_doc("API", agent.api) if hasattr(agent, "api") else frappe.get_doc("API", doc.api) if doc.api else None
+        
+    client = rss if doc.type == "RSS" else clients.get(api.provider) if doc.type == "Crawler" and hasattr(api, "provider") else None
     
     if not client or not hasattr(client, method) or not callable(getattr(client, method)):
         return
