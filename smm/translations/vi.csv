@@ -93,3 +93,4 @@ Redirecting to {0} {1},Đang chuyển hướng tới {0} {1}
 Redirecting to {0},Đang chuyển hướng tới {0}
 Agent to perform crawler fetch.,Agent để thực thi truy xuất dữ liệu
 API to perform crawler fetch.,API để thực thi truy xuất dữ liệu
+"Add 'DATA' keyword to emphasize the AI Content Generator to use given data.","Thêm từ khóa 'DATA' để nhấn mạnh AI Tạo Nội dung sử dụng dữ liệu được cho."

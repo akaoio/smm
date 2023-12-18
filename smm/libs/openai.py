@@ -27,6 +27,13 @@ class OpenAI:
         )
         return response
 
+def join_data(**args):
+    title = utils.find(args, "title")
+    description = utils.find(args, "description")
+    data = title if title else ""
+    data += f". {description}" if description else ""
+    return data if len(data) > 0 else None
+
 
 @frappe.whitelist()
 def generate_content(**args):
@@ -44,7 +51,7 @@ def generate_content(**args):
         frappe.msgprint(_("{0} {1} is disabled").format(_("Content Mechanism"), mechanism))
         return
 
-    feeds = {}
+    feeds = []
     prompts = []
 
     # If given a linked Network Activity, try to get Content of that Activity and generate responsive Contents to it.
@@ -53,8 +60,9 @@ def generate_content(**args):
         linked_activity_doc = frappe.get_doc("Network Activity", activity)
         if linked_activity_doc.content:
             linked_content_doc = frappe.get_doc("Content", linked_activity_doc.content)
-            if linked_content_doc.description:
-                feeds.update({linked_content_doc.name: {"title": linked_content_doc.title, "description": linked_content_doc.description}})
+            content = join_data(linked_content_doc)
+            if content and content not in feeds:
+                feeds.append(content)
 
     length = doc.length
 
@@ -65,13 +73,23 @@ def generate_content(**args):
     prompt_list = doc.prompts
 
     for item in feed_provider_list:
-        docs = frappe.db.get_list("Feed", filters={"provider": item.feed_provider}, fields=["name", "title", "description"], order_by="creation desc", limit_start=0, limit_page_length=item.limit)
-        for doc in docs:
-            feeds.update({doc.name: {"title": doc.title, "description": doc.description}})
+        feed_provider = frappe.get_doc("Feed Provider", item.feed_provider)
+        # If feed provider is virtual, try to get feeds from the `feeds` field, which is a JSON array, then append to `feeds` list.
+        if feed_provider.virtual:
+            virtual_feeds = json.loads(feed_provider.feeds) if feed_provider.feeds else []
+            for virtual_feed in virtual_feeds:
+                content = join_data(virtual_feed)
+                if content and content not in feeds: feeds.append(join_data(content))
+        else:
+            docs = frappe.db.get_list("Feed", filters={"provider": item.feed_provider}, fields=["name", "title", "description"], order_by="creation desc", limit_start=0, limit_page_length=item.limit)
+            for doc in docs:
+                content = join_data(doc)
+                if content and content not in feeds: feeds.append(content)
 
     for item in feed_list:
         doc = frappe.get_doc("Feed", item.feed)
-        feeds.update({doc.name: {"title": doc.title, "description": doc.description}})
+        content = join_data(doc)
+        if content and content not in feeds: feeds.append(content)
 
     for item in prompt_list:
         doc = frappe.get_doc("Prompt", item.prompt)

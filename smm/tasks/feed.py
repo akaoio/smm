@@ -15,7 +15,5 @@ def fetch_all():
         # If never fetched before or next fetch datetime is less than or equal to current datetime, fetch
         if next_fetch is None or next_fetch <= current_datetime:
             feed.fetch(name=feed_provider.name)
-            # Update fetched datetime
-            frappe.db.set_value("Feed Provider", feed_provider.name, "fetched", datetime.datetime.now())
             frappe.db.commit()
     return feed_providers

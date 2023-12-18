@@ -10,6 +10,7 @@
  ],
  "fields": [
   {
+   "description": "Add 'DATA' keyword to emphasize the AI Content Generator to use given data.",
    "fieldname": "description",
    "fieldtype": "Text",
    "in_list_view": 1,
@@ -19,7 +20,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-12-04 14:48:35.595695",
+ "modified": "2023-12-18 09:10:59.119274",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Prompt",

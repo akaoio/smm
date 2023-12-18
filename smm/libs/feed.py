@@ -74,6 +74,8 @@ def fetch(**args):
                             **feed
                         }).insert()
                         frappe.db.commit()
-    
-        doc.save()
-        frappe.db.commit()
+    # Update fetched datetime
+    doc.update({"fetched": frappe.utils.now()})
+    doc.save()
+    frappe.db.commit()
+    return True
