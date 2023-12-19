@@ -340,7 +340,7 @@ def generate_content(**args):
     if mechanism.enabled == 0:
         return
 
-    # Generate filters for Content Generator
+    # Create filters for Content Generator
     required_fields = requirements.get(doc.type)
     filters = {}
     for field in required_fields:

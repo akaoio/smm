@@ -9,7 +9,9 @@
   "mechanism",
   "title",
   "description",
-  "length"
+  "length",
+  "image",
+  "image_preview"
  ],
  "fields": [
   {
@@ -31,19 +33,30 @@
    "in_filter": 1,
    "in_list_view": 1,
    "in_preview": 1,
-   "label": "Description",
-   "reqd": 1
+   "label": "Description"
   },
   {
    "fieldname": "length",
    "fieldtype": "Int",
    "is_virtual": 1,
    "label": "Length"
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image"
+  },
+  {
+   "fieldname": "image_preview",
+   "fieldtype": "Image",
+   "is_virtual": 1,
+   "label": "Image Preview",
+   "options": "image"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-12-03 18:37:26.111718",
+ "modified": "2023-12-19 10:32:52.283631",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Content",

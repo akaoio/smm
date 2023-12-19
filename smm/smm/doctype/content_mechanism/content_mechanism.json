@@ -12,12 +12,19 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "details_section",
   "enabled",
   "title",
-  "feed_providers",
-  "feeds",
+  "length",
   "prompts",
-  "length"
+  "content_types_section",
+  "generate_text",
+  "generate_image",
+  "generate_image_variation",
+  "section_break_ubld",
+  "images",
+  "feed_providers",
+  "feeds"
  ],
  "fields": [
   {
@@ -58,12 +65,55 @@
    "options": "Feed Item"
   },
   {
+   "depends_on": "eval: doc.generate_text || doc.generate_image",
    "description": "These are the commands that will be provided to the AI Content Generator",
    "fieldname": "prompts",
    "fieldtype": "Table",
    "label": "Prompts",
-   "options": "Prompt Item",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.generate_text || doc.generate_image",
+   "options": "Prompt Item"
+  },
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Details"
+  },
+  {
+   "description": "Types of content to generate.",
+   "fieldname": "content_types_section",
+   "fieldtype": "Section Break",
+   "label": "Content Types"
+  },
+  {
+   "fieldname": "section_break_ubld",
+   "fieldtype": "Section Break",
+   "label": "Sources"
+  },
+  {
+   "depends_on": "eval: doc.generate_image || doc.generate_image_variation",
+   "fieldname": "images",
+   "fieldtype": "Table",
+   "label": "Images",
+   "mandatory_depends_on": "eval: doc.generate_image_variation",
+   "options": "Image Item"
+  },
+  {
+   "default": "0",
+   "fieldname": "generate_text",
+   "fieldtype": "Check",
+   "label": "Text"
+  },
+  {
+   "default": "0",
+   "fieldname": "generate_image",
+   "fieldtype": "Check",
+   "label": "Image"
+  },
+  {
+   "default": "0",
+   "fieldname": "generate_image_variation",
+   "fieldtype": "Check",
+   "label": "Image Variation"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -77,7 +127,7 @@
    "link_fieldname": "mechanism"
   }
  ],
- "modified": "2023-11-19 14:49:38.687632",
+ "modified": "2023-12-19 09:58:01.683644",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Content Mechanism",

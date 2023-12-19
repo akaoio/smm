@@ -11,6 +11,6 @@ class Content(Document):
         self.update_title()
 
     def update_title(self):
-        title = self.title or self.description
+        title = self.title or self.description or self.name
         title = utils.shorten_string(title)
         self.title = title

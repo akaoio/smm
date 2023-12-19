@@ -27,7 +27,7 @@ class OpenAI:
         )
         return response
 
-def join_data(**args):
+def join_data(args):
     title = utils.find(args, "title")
     description = utils.find(args, "description")
     data = title if title else ""
@@ -60,7 +60,7 @@ def generate_content(**args):
         linked_activity_doc = frappe.get_doc("Network Activity", activity)
         if linked_activity_doc.content:
             linked_content_doc = frappe.get_doc("Content", linked_activity_doc.content)
-            content = join_data(**linked_content_doc)
+            content = join_data(linked_content_doc)
             if content and content not in feeds:
                 feeds.append(content)
 
@@ -79,12 +79,12 @@ def generate_content(**args):
         docs = json.loads(feed_provider.feeds) if feed_provider.feeds and feed_provider.virtual else frappe.db.get_list("Feed", filters={"provider": item.feed_provider}, fields=["name", "title", "description"], order_by="creation desc", limit_start=0, limit_page_length=20)
         if item.limit and len(docs) > item.limit: docs = random.sample(docs, item.limit)
         for doc in docs:
-            content = join_data(**doc)
+            content = join_data(doc)
             if content and content not in feeds: feeds.append(content)
 
     for item in feed_list:
         doc = frappe.get_doc("Feed", item.feed)
-        content = join_data(**doc)
+        content = join_data(doc)
         if content and content not in feeds: feeds.append(content)
 
     for item in prompt_list:
@@ -171,3 +171,8 @@ def generate_content(**args):
         doc.insert()
         frappe.db.commit()
         return doc
+
+
+# @frappe.whitelist()
+# def generate_image_variations(**args):
+    
