@@ -139,10 +139,11 @@
    "link_fieldname": "plan"
   }
  ],
- "modified": "2023-12-13 23:42:42.865477",
+ "modified": "2023-12-20 08:28:50.936704",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Network Activity Plan",
+ "nsm_parent_field": "parent_network_activity_plan",
  "owner": "Administrator",
  "permissions": [
   {

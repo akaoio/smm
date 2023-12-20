@@ -15,16 +15,15 @@
   "details_section",
   "enabled",
   "title",
-  "length",
-  "prompts",
-  "content_types_section",
   "generate_text",
   "generate_image",
   "generate_image_variation",
   "section_break_ubld",
-  "images",
+  "length",
+  "prompts",
   "feed_providers",
-  "feeds"
+  "feeds",
+  "images"
  ],
  "fields": [
   {
@@ -43,7 +42,8 @@
   },
   {
    "default": "250",
-   "description": "The maximum number of letters of the content to be generated",
+   "depends_on": "eval: doc.generate_text",
+   "description": "The maximum number of characters of the text content to be generated.",
    "fieldname": "length",
    "fieldtype": "Int",
    "in_filter": 1,
@@ -53,12 +53,14 @@
    "label": "Length"
   },
   {
+   "depends_on": "eval: doc.generate_text || doc.generate_image",
    "fieldname": "feed_providers",
    "fieldtype": "Table",
    "label": "Feed Providers",
    "options": "Feed Provider Item"
   },
   {
+   "depends_on": "eval: doc.generate_text || doc.generate_image",
    "fieldname": "feeds",
    "fieldtype": "Table",
    "label": "Feeds",
@@ -79,15 +81,9 @@
    "label": "Details"
   },
   {
-   "description": "Types of content to generate.",
-   "fieldname": "content_types_section",
-   "fieldtype": "Section Break",
-   "label": "Content Types"
-  },
-  {
    "fieldname": "section_break_ubld",
    "fieldtype": "Section Break",
-   "label": "Sources"
+   "label": "Mechanism"
   },
   {
    "depends_on": "eval: doc.generate_image || doc.generate_image_variation",
@@ -101,19 +97,21 @@
    "default": "0",
    "fieldname": "generate_text",
    "fieldtype": "Check",
-   "label": "Text"
+   "label": "Generate Text"
   },
   {
    "default": "0",
+   "depends_on": "eval: !doc.generate_image_variation",
    "fieldname": "generate_image",
    "fieldtype": "Check",
-   "label": "Image"
+   "label": "Generate Image"
   },
   {
    "default": "0",
+   "depends_on": "eval: !doc.generate_image",
    "fieldname": "generate_image_variation",
    "fieldtype": "Check",
-   "label": "Image Variation"
+   "label": "Generate Image Variation"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -127,10 +125,11 @@
    "link_fieldname": "mechanism"
   }
  ],
- "modified": "2023-12-19 09:58:01.683644",
+ "modified": "2023-12-20 16:24:46.495099",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Content Mechanism",
+ "nsm_parent_field": "parent_content_mechanism",
  "owner": "Administrator",
  "permissions": [
   {
