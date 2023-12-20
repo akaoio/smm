@@ -336,12 +336,11 @@ def fetch(**args):
     api = utils.find(args, "api")
     api = frappe.get_doc("API", api)
     token = api.get_password("token") or None
-    print("token", token)
     client = X(access_token=token)
-    response = client.request(
+    client.request(
         "GET",
         endpoint="/2/tweets/search/recent",
         params={"query": keyword},
         headers={"authorization_type": "Bearer", "content_type": "json"}
     )
-    print("\n", response.status_code, response.json())
+    return True

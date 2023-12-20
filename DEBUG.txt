@@ -1,0 +1,9 @@
+test generate image var
+bench --site erp.mimiza.com execute smm.libs.openai.generate_content --kwargs '{"name":"09add3d230"}'
+
+
+test generate image from prompts
+bench --site erp.mimiza.com execute smm.libs.openai.generate_content --kwargs '{"name":"fb46777035"}'
+
+test text
+bench --site erp.mimiza.com execute smm.libs.openai.generate_content --kwargs '{"name":"b98ff6e4aa"}'
