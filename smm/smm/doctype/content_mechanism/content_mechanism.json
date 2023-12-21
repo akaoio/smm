@@ -20,6 +20,9 @@
   "generate_image_variation",
   "section_break_ubld",
   "length",
+  "description_to_image",
+  "style",
+  "size",
   "prompts",
   "feed_providers",
   "feeds",
@@ -112,6 +115,38 @@
    "fieldname": "generate_image_variation",
    "fieldtype": "Check",
    "label": "Generate Image Variation"
+  },
+  {
+   "default": "Natural",
+   "depends_on": "eval: doc.generate_image",
+   "fieldname": "style",
+   "fieldtype": "Select",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Style",
+   "options": "Vivid\nNatural"
+  },
+  {
+   "default": "512x512",
+   "depends_on": "eval: doc.generate_image || doc.generate_image_variation",
+   "fieldname": "size",
+   "fieldtype": "Select",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Size",
+   "options": "256x256\n512x512\n1024x1024"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.generate_text && doc.generate_image",
+   "description": "Image will be generated using Description instead of prompts.",
+   "fieldname": "description_to_image",
+   "fieldtype": "Check",
+   "label": "Description to Image"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -125,7 +160,7 @@
    "link_fieldname": "mechanism"
   }
  ],
- "modified": "2023-12-20 16:24:46.495099",
+ "modified": "2023-12-21 08:07:14.984198",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Content Mechanism",
