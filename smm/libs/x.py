@@ -1,7 +1,7 @@
 import frappe
 from frappe import _
 import requests
-import json
+import json as JSON
 import base64
 import hashlib
 import re
@@ -11,9 +11,11 @@ from . import utils
 
 
 class X:
-    def __init__(self, consumer_id=None, consumer_secret=None, client_id=None, client_secret=None, redirect_uri=None, access_token=None, refresh_token=None, scope=[], authorization_type="Bearer", content_type="json"):
+    def __init__(self, consumer_id=None, consumer_secret=None, client_id=None, client_secret=None, redirect_uri=None, access_token=None, refresh_token=None, scope=[], authorization_type="Bearer", content_type="json", version=None):
+        self.version = version or "oauth1" if consumer_id or consumer_secret else "oauth2" if client_id or client_secret else "oauth2"
         self.base_url = "https://api.twitter.com"
-        self.auth_url = "https://twitter.com/i/oauth2/authorize"
+        self.request_token_url = "https://api.twitter.com/oauth/request_token" if self.version == "oauth1" else None
+        self.auth_url = "https://api.twitter.com/oauth/authorize" if self.version == "oauth1" else "https://twitter.com/i/oauth2/authorize" if self.version == "oauth2" else None
         self.consumer_id = consumer_id
         self.consumer_secret = consumer_secret
         self.client_id = client_id
@@ -46,38 +48,44 @@ class X:
 
     def content_type_header(self, type=None):
         type = type or self.content_type
-        return "application/json" if type == "json" else "application/x-www-form-urlencoded" if type == "urlencoded" else None
+        return "application/json" if type == "json" else "application/x-www-form-urlencoded" if type == "urlencoded" else "multipart/form-data" if type == "form" else None
 
-    def headers(self, authorization_type=None, content_type=None):
-        authorization_type = authorization_type or self.authorization_type
-        content_type = content_type or self.content_type
+    def headers(self, authorization_type=None, content_type=None, headers={}):
+        authorization_type = authorization_type or headers.get("authorization_type") or self.authorization_type
+        content_type = content_type or headers.get("content_type") or self.content_type
         return {
             "Authorization": self.authorization_header(authorization_type),
             "Content-Type": self.content_type_header(content_type)
         }
 
+    # Generate random string
     def verifier(self):
         return re.sub("[^a-zA-Z0-9]+", "", base64.urlsafe_b64encode(os.urandom(30)).decode("utf-8"))
 
     def challenge(self, verifier):
         return base64.urlsafe_b64encode(hashlib.sha256(verifier.encode("utf-8")).digest()).decode("utf-8").replace("=", "")
 
+    # Generate new state with unique random string
+    # This state will be used to verify the requests/responses
     def new_state(self):
         self.state = self.verifier()
         return self.state
 
-    def request(self, method="GET", url=None, endpoint=None, params={}, json={}, headers={}, request=True):
+    def request(self, method="GET", url=None, endpoint=None, params={}, data={}, json={}, headers={}, request=True, **args):
         url = url or self.base_url + endpoint
 
-        authorization_type, content_type = headers.get("authorization_type"), headers.get("content_type")
-
-        headers = self.headers(authorization_type, content_type)
-
+        headers = self.headers(headers=headers)
+        # if utils.find(args, "files"):
+        #     del headers["Content-Type"] # If files present, let requests library handle content type
+        if headers.get("Content-Type") == "application/json":
+            # data = JSON.dumps(data)
+           json = JSON.dumps(json)
+        print("HEADERS", headers)
         # Complete URL with encoded parameters
         if method == "GET" and not request:
             return url + "?" + urlencode(params)
         if request:
-            return requests.request(method, url, params=params, json=json, headers=headers)
+            return requests.request(method, url, params=params, data=data, json=json, headers=headers)
 
     # Returns authorization URL, state, code_verifier, code_challenge, code_challenge_method
     def authorize(self, redirect_uri=None, scope=[], state=None, code_verifier=None, code_challenge=None, code_challenge_method="S256"):
@@ -87,40 +95,81 @@ class X:
         code_challenge = code_challenge or self.challenge(code_verifier)
         code_challenge_method = code_challenge_method or "S256"
 
-        params = {
-            "response_type": "code",
-            "client_id": self.client_id,
-            "redirect_uri": redirect_uri or self.redirect_uri,
-            "scope": " ".join(scope),
-            "state": state,
-            "code_challenge": code_challenge,
-            "code_challenge_method": code_challenge_method
-        }
+        if self.version == "oauth1":
+            request_token = self.request_token()
+            if request_token.status_code == 200:
+                response = request_token.json()
+                oauth_token = response.get("oauth_token")
+                state = oauth_token # OAuth 1 doesn't have state, so we use oauth_token instead
+                oauth_token_secret = response.get("oauth_token_secret")
+                oauth_callback_confirmed = response.get("oauth_callback_confirmed")
+                if oauth_callback_confirmed:
+                    url = self.request("GET", url=self.auth_url, params={"oauth_token": oauth_token}, request=False)
 
-        url = self.request("GET", url=self.auth_url, params=params, request=False)
+        if self.version == "oauth2":
+            params = {
+                "state": state,
+                "response_type": "code",
+                "client_id": self.client_id,
+                "redirect_uri": redirect_uri or self.redirect_uri,
+                "scope": " ".join(scope),
+                "code_challenge": code_challenge,
+                "code_challenge_method": code_challenge_method
+            }
+            url = self.request("GET", url=self.auth_url, params=params, request=False)
 
         return url, state, code_verifier, code_challenge, code_challenge_method
 
-    # Get access token from code
-    def token(self, code_verifier=None, code=None, redirect_uri=None):
-        if not code_verifier or not code:
+    # For OAuth 1: Exchange oauth_consumer_key for oauth_token
+    def request_token(self):
+        if not self.consumer_id:
             return
-
         return self.request(
             "POST",
-            endpoint="/2/oauth2/token",
-            params={
-                "grant_type": "authorization_code",
-                "code": code,
-                "client_id": self.client_id,
-                "code_verifier": code_verifier,
-                "redirect_uri": redirect_uri or self.redirect_uri
-            },
-            headers={
-                "authorization_type": "Basic",
-                "content_type": "urlencoded"
+            url=self.request_token_url,
+            data={
+                "oauth_callback": self.redirect_uri,
+                "oauth_consumer_key": self.consumer_id
             }
         )
+
+    # Get access token from code
+    def token(self, oauth_token=None, oauth_verifier=None, code_verifier=None, code=None, redirect_uri=None):
+        if self.version == "oauth1":
+            if not oauth_token or not oauth_verifier:
+                return
+            return self.request(
+                "POST",
+                endpoint="/oauth/access_token",
+                params={
+                    "oauth_consumer_key": self.consumer_id,
+                    "oauth_token": oauth_token,
+                    "oauth_verifier": oauth_verifier
+                },
+                headers={
+                    "authorization_type": "Basic",
+                    "content_type": "urlencoded"
+                }
+            )
+        
+        if self.version == "oauth2":
+            if not code_verifier or not code:
+                return
+            return self.request(
+                "POST",
+                endpoint="/2/oauth2/token",
+                params={
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "client_id": self.client_id,
+                    "code_verifier": code_verifier,
+                    "redirect_uri": redirect_uri or self.redirect_uri
+                },
+                headers={
+                    "authorization_type": "Basic",
+                    "content_type": "urlencoded"
+                }
+            )
 
     # Refresh access token
     def refresh_access_token(self, token=None):
@@ -140,10 +189,33 @@ class X:
                 "content_type": "urlencoded"
             }
         )
+    
+    # Upload media file
+    def upload(self, file):
+        print("UPLOAD")
+        url = "https://upload.twitter.com/1.1/media/upload.json"
+        # media_data = base64.b64encode(file).decode("utf-8")
+        response = self.request(
+            "POST",
+            url=url,
+            params={
+                "media_category": "tweet_image"
+            },
+            data={
+                "media": file
+                # "media_data": media_data
+            },
+            files={"media": file},
+            headers={"authorization_type": "Bearer", "content_type": "urlencoded"}
+        )
+        # TEST TEST TEST
+        print("TEST", response.request.headers,response.status_code, response, response.content)
+        return response
 
 
 @frappe.whitelist()
 def authorize(**args):
+    version = utils.find(args, "version") or "oauth2" # Must be "oauth1" or "oauth2"
     unsaved = utils.find(args, "__unsaved")
     name = utils.find(args, "name") if not unsaved else None
     api = utils.find(args, "api")
@@ -151,13 +223,23 @@ def authorize(**args):
         frappe.msgprint(_("{0} is empty").format(_("API")))
         return
     doc = frappe.get_doc("API", api)
+    consumer_id = doc.get_password("consumer_id") or None
+    consumer_secret = doc.get_password("consumer_secret") or None
     client_id = doc.get_password("client_id") or None
     client_secret = doc.get_password("client_secret") or None
-    if not client_id or not client_secret:
-        frappe.msgprint(_("Client ID or Client Secret or both not found"))
-        return
+    credentials = {}
+    if version == "oauth1":
+        if not consumer_id or not consumer_secret:
+            frappe.msgprint(_("Consumer ID or Consumer Secret or both not found"))
+            return
+        credentials.update({"consumer_id": consumer_id, "consumer_secret": consumer_secret})
+    if version == "oauth2":
+        if not client_id or not client_secret:
+            frappe.msgprint(_("Client ID or Client Secret or both not found"))
+            return
+        credentials.update({"client_id": client_id, "client_secret": client_secret})
 
-    client = X(client_id=client_id)
+    client = X(**credentials)
 
     url, state, code_verifier, code_challenge, code_challenge_method = client.authorize()
 
@@ -165,6 +247,9 @@ def authorize(**args):
         "state": state,
         "user": frappe.session.user,
         "API": api,
+        "version": version,
+        "consumer_id": consumer_id,
+        "consumer_secret": consumer_secret,
         "client_id": client_id,
         "client_secret": client_secret,
         "code_verifier": code_verifier,
@@ -176,32 +261,65 @@ def authorize(**args):
         session_data["name"] = name
 
     # Save session data to frappe cache so that it can be used later for verification
-    frappe.cache().set_value(state, json.dumps(session_data))
+    frappe.cache().set_value(state, JSON.dumps(session_data))
 
     return {"state": state, "authorization_url": url}
 
 
 @frappe.whitelist()
 def callback(**args):
-    error, state, code = args.get("error"), args.get("state"), args.get("code")
+    error = args.get("error")
+    oauth_token, oauth_verifier = args.get("oauth_token"), args.get("oauth_verifier")
+    state = args.get("state") or oauth_token or None
+    code = args.get("code") or None
+    
     if error:
         redirect_url = "/app/agent"
         frappe.local.response.update({"type": "redirect", "location": redirect_url, "message": _("Redirecting to {0}").format(_("Agent"))})
         return
-    if state and code:
-        data = frappe.cache().get_value(state)
-        if data:
-            session = json.loads(data)
-            name = session.get("name")
-            api = session.get("API")
-            doc = frappe.get_doc("API", api)
-            client_id = session.get("client_id") or doc.get_password("client_id") or None
-            client_secret = session.get("client_secret") or doc.get_password("client_secret") or None
+    
+    if not state:
+        return
+    
+    # Try to get session data from frappe cache using state
+    data = frappe.cache().get_value(state)
+    
+    # Delete frappe cache to release memory
+    frappe.cache().delete_value(state)
+    
+    if data:
+        session = JSON.loads(data)
+        version = session.get("version")
+        name = session.get("name")
+        api = session.get("API")
+        api = frappe.get_doc("API", api)
+        
+        tokens = None
+        
+        if version == "oauth1" and oauth_token and oauth_verifier:
+            consumer_id = session.get("consumer_id") or api.get_password("consumer_id") or None
+            consumer_secret = session.get("consumer_secret") or api.get_password("consumer_secret") or None
+            client = X(consumer_id=consumer_id, consumer_secret=consumer_secret)
+            
+            response = client.token(oauth_token=oauth_token, oauth_verifier=oauth_verifier)
+            
+            if response.status_code == 200:
+                response = response.json()
+                if "oauth_token" not in response:
+                    frappe.throw("Access token not received. Authorization failed.")
+
+                tokens = {
+                    "v1_access_token": response.get("oauth_token")
+                }
+
+        if version == "oauth2" and state and code:
+            client_id = session.get("client_id") or api.get_password("client_id") or None
+            client_secret = session.get("client_secret") or api.get_password("client_secret") or None
             code_verifier = session.get("code_verifier")
             client = X(client_id=client_id, client_secret=client_secret)
 
             response = client.token(code_verifier=code_verifier, code=code)
-
+            
             if response.status_code == 200:
                 response = response.json()
                 if "access_token" not in response:
@@ -211,29 +329,27 @@ def callback(**args):
                     "access_token": response.get("access_token"),
                     "refresh_token": response.get("refresh_token")
                 }
+        
+        if tokens:
+            if name:
+                doc = frappe.get_doc("Agent", name)
+                doc.update(tokens)
+                doc.save()
+            else:
+                doc = frappe.get_doc({
+                    "doctype": "Agent",
+                    "api": api,
+                    **tokens
+                })
+                doc.insert()
+            frappe.db.commit()
 
-                if name:
-                    doc = frappe.get_doc("Agent", name)
-                    doc.update(tokens)
-                    doc.save()
-                else:
-                    doc = frappe.get_doc({
-                        "doctype": "Agent",
-                        "api": api,
-                        **tokens
-                    })
-                    doc.insert()
+            # Get user profile after successful authorization
+            profile(name=doc.name)
 
-                frappe.db.commit()
+            redirect_url = f"/app/agent/{doc.name}"
+            frappe.local.response.update({"type": "redirect", "location": redirect_url, "message": _("Redirecting to {0} {1}").format(_("Agent"), doc.name)})
 
-                # Get user profile after successful authorization
-                profile(name=doc.name)
-
-                redirect_url = f"/app/agent/{doc.name}"
-                frappe.local.response.update({"type": "redirect", "location": redirect_url, "message": _("Redirecting to {0} {1}").format(_("Agent"), doc.name)})
-
-        # Delete frappe cache to release memory
-        frappe.cache().delete_value(state)
     return args
 
 
@@ -302,6 +418,7 @@ def send(**args):
     agent = utils.find(args, "agent") or frappe.get_doc("Agent", name)
     activity_type = utils.find(args, "type")
     text = utils.find(args, "text")
+    image = utils.find(args, "image")
     token = agent.get_password("access_token") or None
     client = X(access_token=token)
 
@@ -315,7 +432,16 @@ def send(**args):
         }
         param = types.get(activity_type)
         params.update(param)
-
+    
+    # Upload media if possible
+    if image:
+        upload = client.upload(image)
+        # content = upload.content.json()
+        print("TEST", upload.status_code, upload.content)
+    
+    return
+    
+    # Send final content
     response = client.request(
         "POST",
         endpoint="/2/tweets",

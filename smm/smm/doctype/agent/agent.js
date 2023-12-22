@@ -1,15 +1,30 @@
 // Copyright (c) 2023, MIMIZA and contributors
 // For license information, please see license.txt
 
+function authorize_oauth_callback(response = {}) {
+  const { authorization_url } = response.message;
+  window.location = authorization_url;
+}
+
 frappe.ui.form.on("Agent", {
-  authorize: (form) => {
+  authorize_oauth1: (form) => {
     frappe.call({
       method: "smm.libs.agent.authorize",
-      args: form.selected_doc,
-      callback: (response) => {
-        const { authorization_url } = response.message;
-        window.location = authorization_url;
+      args: {
+        "version": "oauth1",
+        ...form.selected_doc
       },
+      callback: authorize_oauth_callback,
+    });
+  },
+  authorize_oauth2: (form) => {
+    frappe.call({
+      method: "smm.libs.agent.authorize",
+      args: {
+        "version": "oauth2",
+        ...form.selected_doc
+      },
+      callback: authorize_oauth_callback,
     });
   },
   profile: (form) => {

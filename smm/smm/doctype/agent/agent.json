@@ -20,13 +20,15 @@
   "title",
   "api",
   "provider",
-  "authorize",
+  "authorize_oauth1",
+  "authorize_oauth2",
   "display_name",
   "alias",
   "uid",
   "description",
   "picture",
   "audience_size",
+  "oauth1_access_token",
   "access_token",
   "refresh_token",
   "groups_tab",
@@ -46,14 +48,14 @@
    "depends_on": "eval: ['X', 'Facebook'].includes(doc.provider)",
    "fieldname": "access_token",
    "fieldtype": "Password",
-   "label": "Access Token",
+   "label": "OAuth 2 Access Token",
    "length": 500
   },
   {
    "depends_on": "eval: ['X', 'Facebook'].includes(doc.provider)",
    "fieldname": "refresh_token",
    "fieldtype": "Password",
-   "label": "Refresh Token",
+   "label": "OAuth 2 Refresh Token",
    "length": 500
   },
   {
@@ -114,12 +116,6 @@
    "label": "Display Name"
   },
   {
-   "depends_on": "eval: ['X', 'Facebook'].includes(doc.provider)",
-   "fieldname": "authorize",
-   "fieldtype": "Button",
-   "label": "Authorize"
-  },
-  {
    "depends_on": "eval: ['Telegram Bot', 'X', 'Facebook'].includes(doc.provider)",
    "fieldname": "description",
    "fieldtype": "Text",
@@ -143,6 +139,25 @@
    "fieldtype": "Table MultiSelect",
    "label": "Agent Groups",
    "options": "Agent Group Item"
+  },
+  {
+   "depends_on": "eval: ['X', 'Facebook'].includes(doc.provider)",
+   "fieldname": "authorize_oauth2",
+   "fieldtype": "Button",
+   "label": "Authorize OAuth 2"
+  },
+  {
+   "depends_on": "eval: ['X', 'Facebook'].includes(doc.provider)",
+   "fieldname": "authorize_oauth1",
+   "fieldtype": "Button",
+   "label": "Authorize OAuth 1"
+  },
+  {
+   "depends_on": "eval: ['X', 'Facebook'].includes(doc.provider)",
+   "fieldname": "oauth1_access_token",
+   "fieldtype": "Password",
+   "label": "OAuth 1 Access Token",
+   "length": 500
   }
  ],
  "index_web_pages_for_search": 1,
@@ -152,7 +167,7 @@
    "link_fieldname": "agent"
   }
  ],
- "modified": "2023-12-03 16:42:06.666036",
+ "modified": "2023-12-22 08:44:05.897703",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Agent",

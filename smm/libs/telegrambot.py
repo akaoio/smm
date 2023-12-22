@@ -45,7 +45,9 @@ def profile(**args):
     data = response.json()
 
     if not data.get("ok"):
-        if data.get("description"): frappe.msgprint(data.get("description"))
+        if data.get("description"):
+            msg = _(data.get("description"))
+            frappe.msgprint(msg)
         return response
 
     profile = response.json().get("result")

@@ -347,7 +347,7 @@ def generate_content(**args):
         filters[field] = doc.get(field)
 
     content = openai.generate_content(**filters)
-    if content and content.name:
+    if content and content.get("name"):
         doc.update({"content": content.name}).save()
         frappe.db.commit()
         return doc
@@ -362,7 +362,7 @@ def cast(**args):
     doc = frappe.get_doc("Network Activity", name)
     if doc.status != "Pending":
         return
-
+    
     agent = frappe.get_doc("Agent", utils.find(args, "agent") or doc.agent)
     provider = agent.provider
 
@@ -372,13 +372,13 @@ def cast(**args):
         if linked_activity.external_id:
             linked_external_id = linked_activity.external_id
 
-    content = utils.find(args, "content")
+    content = utils.find(args, "content") or doc.content
     content = frappe.get_doc("Content", content) if content else None
     if not content:
         return
-
+    
     text = utils.remove_quotes(content.description)
-
+    
     clients = {
         "Telegram Bot": telegrambot,
         "X": x
@@ -391,6 +391,12 @@ def cast(**args):
         "text": text,
         "type": doc.type,
     }
+    
+    if content.get("image") is not None:
+        image = frappe.get_value("File", {"file_url": content.image}, "file_name")
+        image = frappe.utils.file_manager.get_file(image)
+        image = image[1] # get_file returns an array of 2 items, the first one is file path, the second one is file content
+        params.update({"image": image})
 
     if linked_external_id:
         params.update({"linked_external_id": linked_external_id})
@@ -399,6 +405,8 @@ def cast(**args):
         return
     
     response = client.send(**params)
+    #TEST TEST TEST
+    return
 
     # If type of response is dict and has json property
     data = response.json()

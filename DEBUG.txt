@@ -5,5 +5,8 @@ bench --site erp.mimiza.com execute smm.libs.openai.generate_content --kwargs '{
 test generate image from prompts
 bench --site erp.mimiza.com execute smm.libs.openai.generate_content --kwargs '{"name":"fb46777035"}'
 
-test text
+test generate text --> image
 bench --site erp.mimiza.com execute smm.libs.openai.generate_content --kwargs '{"name":"b98ff6e4aa"}'
+
+test upload media
+bench --site erp.mimiza.com execute smm.libs.activity.cast --kwargs '{"name":"8d15df4ad5"}'
