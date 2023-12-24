@@ -3,18 +3,20 @@ from frappe import _
 import requests
 import json as JSON
 import base64
+import hmac
 import hashlib
 import re
 import os
+import time
 from urllib.parse import urlencode
 from . import utils
 
 
 class X:
-    def __init__(self, consumer_id=None, consumer_secret=None, client_id=None, client_secret=None, redirect_uri=None, access_token=None, refresh_token=None, scope=[], authorization_type="Bearer", content_type="json", version=None):
+    def __init__(self, consumer_id=None, consumer_secret=None, client_id=None, client_secret=None, redirect_uri=None, access_token=None, refresh_token=None, scope=[], authorization_type=None, content_type=None, version=None):
         self.version = version or "oauth1" if consumer_id or consumer_secret else "oauth2" if client_id or client_secret else "oauth2"
         self.base_url = "https://api.twitter.com"
-        self.request_token_url = "https://api.twitter.com/oauth/request_token" if self.version == "oauth1" else None
+        self.request_token_url = "https://api.twitter.com/oauth/request_token"
         self.auth_url = "https://api.twitter.com/oauth/authorize" if self.version == "oauth1" else "https://twitter.com/i/oauth2/authorize" if self.version == "oauth2" else None
         self.consumer_id = consumer_id
         self.consumer_secret = consumer_secret
@@ -42,22 +44,72 @@ class X:
         data = f"{self.client_id}:{self.client_secret}" if self.client_id and self.client_secret else f"{self.consumer_id}:{self.consumer_secret}" if self.consumer_id and self.consumer_secret else None
         return f"Basic {base64.b64encode(data.encode('utf-8')).decode('utf-8')}"
 
-    def authorization_header(self, type=None):
+    def oauth(self, oauth_params={}):
+        oauth_params = sorted(oauth_params.items())
+        content = ', '.join([f'{key}="{self.percent_encode(str(value))}"' for key, value in oauth_params])
+        return f"OAuth {content}"
+
+    def authorization_header(self, type=None, oauth_params={}):
         type = type or self.authorization_type
-        return self.bearer() if type == "Bearer" else self.basic() if type == "Basic" else None
+        return self.bearer() if type == "Bearer" else self.basic() if type == "Basic" else self.oauth(oauth_params) if type == "OAuth" else None
 
     def content_type_header(self, type=None):
         type = type or self.content_type
         return "application/json" if type == "json" else "application/x-www-form-urlencoded" if type == "urlencoded" else "multipart/form-data" if type == "form" else None
 
-    def headers(self, authorization_type=None, content_type=None, headers={}):
+    def headers(self, authorization_type=None, content_type=None, headers={}, method=None, url=None, params={}, data={}, json={}):
         authorization_type = authorization_type or headers.get("authorization_type") or self.authorization_type
         content_type = content_type or headers.get("content_type") or self.content_type
-        return {
-            "Authorization": self.authorization_header(authorization_type),
-            "Content-Type": self.content_type_header(content_type)
+        headers = {}
+        if self.version == "oauth1":
+            oauth_params = self.sign_request(method=method, url=url, params={**params, **data, **json})
+        if authorization_type: headers.update({"Authorization": self.authorization_header(authorization_type, oauth_params)})
+        if content_type: headers.update({"Content-Type": self.content_type_header(content_type)})
+        return headers
+    
+    def oauth_base_params(self, params={}):
+        params = {
+            "oauth_consumer_key": self.consumer_id,
+            "oauth_nonce": re.sub("[^a-zA-Z0-9]+", "", base64.urlsafe_b64encode(os.urandom(32)).decode("utf-8")),
+            "oauth_signature_method": "HMAC-SHA1",
+            "oauth_timestamp": str(int(time.time())),
+            "oauth_version": "1.0",
+            **params
         }
+        if self.access_token:
+            params.update({"oauth_token": self.access_token})
+        return params
 
+    # Lexicographically sort parameters and urlencode them
+    def encode_params(self, params):
+        return urlencode(sorted(params.items()))
+
+    # Percent encode
+    def percent_encode(self, string):
+        return re.sub(r"([^a-zA-Z0-9-_\.~])", lambda m: f"%{ord(m.group(1)):02X}", string)
+
+    def signature(self, key, string):
+        return base64.b64encode(hmac.new(key.encode("utf-8"), string.encode("utf-8"), hashlib.sha1).digest()).decode("utf-8")
+        
+    def sign_request(self, method=None, url=None, params={}):
+        oauth_params = self.oauth_base_params(params)
+        for key, value in oauth_params.items():
+            if key.startswith("oauth_"):
+                oauth_params[key] = self.percent_encode(value)
+        base_url = url.split("?")[0]
+        base_url = self.percent_encode(base_url)
+        base_string = f"{method.upper()}&{base_url}&{params}"
+        signing_key = f"{self.percent_encode(self.consumer_secret)}&"
+        if self.access_token:
+            signing_key += f"{self.percent_encode(self.access_token)}"
+        print({
+            "base_string": base_string,
+            "signing_key": signing_key
+        })
+        signature = self.signature(signing_key, base_string)
+        oauth_params.update({"oauth_signature": signature})
+        return oauth_params
+    
     # Generate random string
     def verifier(self):
         return re.sub("[^a-zA-Z0-9]+", "", base64.urlsafe_b64encode(os.urandom(30)).decode("utf-8"))
@@ -74,13 +126,13 @@ class X:
     def request(self, method="GET", url=None, endpoint=None, params={}, data={}, json={}, headers={}, request=True, **args):
         url = url or self.base_url + endpoint
 
-        headers = self.headers(headers=headers)
+        headers = self.headers(headers=headers, method=method, url=url, params=params, data=data, json=json)
         # if utils.find(args, "files"):
         #     del headers["Content-Type"] # If files present, let requests library handle content type
         if headers.get("Content-Type") == "application/json":
-            # data = JSON.dumps(data)
-           json = JSON.dumps(json)
-        print("HEADERS", headers)
+            data = JSON.dumps(data)
+            json = JSON.dumps(json)
+        print({"headers": headers, "params": params})
         # Complete URL with encoded parameters
         if method == "GET" and not request:
             return url + "?" + urlencode(params)
@@ -101,7 +153,7 @@ class X:
                 response = request_token.json()
                 oauth_token = response.get("oauth_token")
                 state = oauth_token # OAuth 1 doesn't have state, so we use oauth_token instead
-                oauth_token_secret = response.get("oauth_token_secret")
+                oauth_token_secret = response.get("oauth_token_secret") # Don't know what to do with this but it's referenced in the docs
                 oauth_callback_confirmed = response.get("oauth_callback_confirmed")
                 if oauth_callback_confirmed:
                     url = self.request("GET", url=self.auth_url, params={"oauth_token": oauth_token}, request=False)
@@ -121,15 +173,22 @@ class X:
         return url, state, code_verifier, code_challenge, code_challenge_method
 
     # For OAuth 1: Exchange oauth_consumer_key for oauth_token
-    def request_token(self):
-        if not self.consumer_id:
+    def request_token(self, consumer_id=None, redirect_uri=None):
+        consumer_id = consumer_id or self.consumer_id
+        redirect_uri = redirect_uri or self.redirect_uri
+        print("REQUEST TOKEN", consumer_id, redirect_uri)
+        if not consumer_id:
             return
         return self.request(
             "POST",
             url=self.request_token_url,
-            data={
-                "oauth_callback": self.redirect_uri,
-                "oauth_consumer_key": self.consumer_id
+            params={
+                "oauth_callback": redirect_uri,
+                "oauth_consumer_key": consumer_id
+            },
+            headers={
+                "authorization_type": "OAuth",
+                "content_type": "urlencoded"
             }
         )
 
@@ -191,8 +250,8 @@ class X:
         )
     
     # Upload media file
+    # IMPORTANT: This method doesn't work yet!
     def upload(self, file):
-        print("UPLOAD")
         url = "https://upload.twitter.com/1.1/media/upload.json"
         # media_data = base64.b64encode(file).decode("utf-8")
         response = self.request(
@@ -208,8 +267,6 @@ class X:
             files={"media": file},
             headers={"authorization_type": "Bearer", "content_type": "urlencoded"}
         )
-        # TEST TEST TEST
-        print("TEST", response.request.headers,response.status_code, response, response.content)
         return response
 
 
@@ -309,7 +366,7 @@ def callback(**args):
                     frappe.throw("Access token not received. Authorization failed.")
 
                 tokens = {
-                    "v1_access_token": response.get("oauth_token")
+                    "oauth1_access_token": response.get("oauth_token")
                 }
 
         if version == "oauth2" and state and code:
@@ -470,3 +527,19 @@ def fetch(**args):
         headers={"authorization_type": "Bearer", "content_type": "json"}
     )
     return True
+
+
+@frappe.whitelist()
+def test(**args):
+    bearer_token = 'AAAAAAAAAAAAAAAAAAAAAGiUoQEAAAAAIO2QWQWEjVT46eFLJsdfhWaYYyQ%3DwAzBQCPTXt8HffayrWPH4XtUz6wHYsCSVwtCWRK35rdM9Pvc2P'
+    access_token_secret = 'kMnJLJT11gA2Z19VsEL13slyhQaJx81PQUsGEuvh0RTv7'
+    access_token = '1671540221870231552-nA96FjL2W7LRJnmIu2LGNre3tjMOLF'
+    consumer_id = 'uGBHq5xFLv1VPlPHjr2grgHjg'
+    consumer_secret = 'a5j7bg5IIqzI1DIKWePyMDG9vjCewMi4rqozdWvVH3bAiKdu1Q'
+    credentials = {
+        'consumer_id': consumer_id, 
+        'consumer_secret': consumer_secret,
+    }
+    client = X(**credentials)
+    response = client.request_token()
+    print("RESPONSE", response.status_code, response.content)

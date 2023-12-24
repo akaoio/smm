@@ -10,3 +10,6 @@ bench --site erp.mimiza.com execute smm.libs.openai.generate_content --kwargs '{
 
 test upload media
 bench --site erp.mimiza.com execute smm.libs.activity.cast --kwargs '{"name":"8d15df4ad5"}'
+
+test request
+bench --site erp.mimiza.com execute smm.libs.x.test
