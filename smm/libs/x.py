@@ -98,11 +98,12 @@ class X:
                 oauth_params[key] = self.percent_encode(value)
         base_url = url.split("?")[0]
         base_url = self.percent_encode(base_url)
-        base_string = f"{method.upper()}&{base_url}&{params}"
+        base_string = f"{method.upper()}&{base_url}&{self.percent_encode(self.encode_params(oauth_params))}"
         signing_key = f"{self.percent_encode(self.consumer_secret)}&"
         if self.access_token:
             signing_key += f"{self.percent_encode(self.access_token)}"
         print({
+            "base_url": base_url,
             "base_string": base_string,
             "signing_key": signing_key
         })
@@ -182,7 +183,7 @@ class X:
         return self.request(
             "POST",
             url=self.request_token_url,
-            params={
+            data={
                 "oauth_callback": redirect_uri,
                 "oauth_consumer_key": consumer_id
             },
