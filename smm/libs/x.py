@@ -358,7 +358,7 @@ def callback(**args):
             response = client.token(oauth_token=oauth_token, oauth_verifier=oauth_verifier)
             
             if response.status_code == 200:
-                response = response.json()
+                response = dict([pair.split("=") for pair in response.content.decode("utf-8").split("&")])
                 if "oauth_token" not in response:
                     frappe.throw("Access token not received. Authorization failed.")
 
