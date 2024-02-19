@@ -146,7 +146,9 @@ class X:
         if self.version == "oauth1":
             request_token = self.request_token()
             if request_token.status_code == 200:
-                response = request_token.json()
+                # On success request, the raw response content is a string "oauth_token=Z6eEdO8MOmk394WozF5oKyuAv855l4Mlqo7hhlSLik&oauth_token_secret=Kd75W4OQfb2oJTV0vzGzeXftVAwgMnEK9MumzYcM&oauth_callback_confirmed=true"
+                # Parse the response content to get oauth_token and oauth_token_secret
+                response = dict([pair.split("=") for pair in request_token.content.decode("utf-8").split("&")])
                 oauth_token = response.get("oauth_token")
                 state = oauth_token # OAuth 1 doesn't have state, so we use oauth_token instead
                 oauth_token_secret = response.get("oauth_token_secret") # Don't know what to do with this but it's referenced in the docs
