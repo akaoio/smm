@@ -60,10 +60,11 @@ class X:
     def headers(self, authorization_type=None, content_type=None, headers={}, method=None, url=None, params={}, data={}, json={}):
         authorization_type = authorization_type or headers.get("authorization_type") or self.authorization_type
         content_type = content_type or headers.get("content_type") or self.content_type
+        oauth_params = {}
         headers = {}
         if self.version == "oauth1":
             oauth_params = self.sign_request(method=method, url=url, params={**params, **data, **json})
-        if authorization_type: headers.update({"Authorization": self.authorization_header(authorization_type, oauth_params)})
+        if authorization_type:headers.update({"Authorization": self.authorization_header(authorization_type, oauth_params)})
         if content_type: headers.update({"Content-Type": self.content_type_header(content_type)})
         return headers
     
