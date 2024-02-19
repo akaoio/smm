@@ -8,7 +8,7 @@ import hashlib
 import re
 import os
 import time
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 from . import utils
 
 
@@ -70,7 +70,7 @@ class X:
     def oauth_base_params(self, params={}):
         params = {
             "oauth_consumer_key": self.consumer_id,
-            "oauth_nonce": re.sub("[^a-zA-Z0-9]+", "", base64.urlsafe_b64encode(os.urandom(32)).decode("utf-8")),
+            "oauth_nonce": self.verifier(),
             "oauth_signature_method": "HMAC-SHA1",
             "oauth_timestamp": str(int(time.time())),
             "oauth_version": "1.0",
@@ -99,14 +99,10 @@ class X:
         base_url = url.split("?")[0]
         base_url = self.percent_encode(base_url)
         base_string = f"{method.upper()}&{base_url}&{self.percent_encode(self.encode_params(oauth_params))}"
+        
         signing_key = f"{self.percent_encode(self.consumer_secret)}&"
         if self.access_token:
             signing_key += f"{self.percent_encode(self.access_token)}"
-        print({
-            "base_url": base_url,
-            "base_string": base_string,
-            "signing_key": signing_key
-        })
         signature = self.signature(signing_key, base_string)
         oauth_params.update({"oauth_signature": signature})
         return oauth_params
@@ -133,7 +129,6 @@ class X:
         if headers.get("Content-Type") == "application/json":
             data = JSON.dumps(data)
             json = JSON.dumps(json)
-        print({"headers": headers, "params": params})
         # Complete URL with encoded parameters
         if method == "GET" and not request:
             return url + "?" + urlencode(params)
@@ -177,19 +172,17 @@ class X:
     def request_token(self, consumer_id=None, redirect_uri=None):
         consumer_id = consumer_id or self.consumer_id
         redirect_uri = redirect_uri or self.redirect_uri
-        print("REQUEST TOKEN", consumer_id, redirect_uri)
+        
         if not consumer_id:
             return
         return self.request(
             "POST",
             url=self.request_token_url,
             data={
-                "oauth_callback": redirect_uri,
                 "oauth_consumer_key": consumer_id
             },
             headers={
-                "authorization_type": "OAuth",
-                "content_type": "urlencoded"
+                "authorization_type": "OAuth"
             }
         )
 
@@ -528,19 +521,3 @@ def fetch(**args):
         headers={"authorization_type": "Bearer", "content_type": "json"}
     )
     return True
-
-
-@frappe.whitelist()
-def test(**args):
-    bearer_token = 'AAAAAAAAAAAAAAAAAAAAAGiUoQEAAAAAIO2QWQWEjVT46eFLJsdfhWaYYyQ%3DwAzBQCPTXt8HffayrWPH4XtUz6wHYsCSVwtCWRK35rdM9Pvc2P'
-    access_token_secret = 'kMnJLJT11gA2Z19VsEL13slyhQaJx81PQUsGEuvh0RTv7'
-    access_token = '1671540221870231552-nA96FjL2W7LRJnmIu2LGNre3tjMOLF'
-    consumer_id = 'uGBHq5xFLv1VPlPHjr2grgHjg'
-    consumer_secret = 'a5j7bg5IIqzI1DIKWePyMDG9vjCewMi4rqozdWvVH3bAiKdu1Q'
-    credentials = {
-        'consumer_id': consumer_id, 
-        'consumer_secret': consumer_secret,
-    }
-    client = X(**credentials)
-    response = client.request_token()
-    print("RESPONSE", response.status_code, response.content)
