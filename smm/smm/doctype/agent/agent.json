@@ -29,6 +29,7 @@
   "picture",
   "audience_size",
   "oauth1_access_token",
+  "oauth1_token_secret",
   "access_token",
   "refresh_token",
   "groups_tab",
@@ -158,6 +159,11 @@
    "fieldtype": "Password",
    "label": "OAuth 1 Access Token",
    "length": 500
+  },
+  {
+   "fieldname": "oauth1_token_secret",
+   "fieldtype": "Password",
+   "label": "OAuth 1 Token Secret"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -167,7 +173,7 @@
    "link_fieldname": "agent"
   }
  ],
- "modified": "2023-12-22 08:44:05.897703",
+ "modified": "2024-03-17 21:00:05.038037",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Agent",
