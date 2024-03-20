@@ -1,8 +1,6 @@
 {
   "[python]": {
-    "editor.defaultFormatter": "ms-python.autopep8",
-    "editor.formatOnSave": false,
-    "editor.formatOnSaveMode": "modifications"
+    "editor.defaultFormatter": "ms-python.autopep8"
   },
   "python.formatting.provider": "none"
 }
