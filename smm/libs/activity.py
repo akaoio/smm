@@ -1,8 +1,11 @@
+import copy
+import datetime
+
 import frappe
 from frappe import _
-from . import utils, x, telegrambot, openai
-import datetime
-import copy
+from frappe.utils import get_site_name
+
+from . import openai, telegrambot, utils, x
 
 # Based on the type of Network Activity, the required fields are different
 requirements = {
@@ -391,12 +394,17 @@ def cast(**args):
         "text": text,
         "type": doc.type,
     }
-    
+
     if content.get("image") is not None:
-        image = frappe.get_value("File", {"file_url": content.image}, "file_name")
+        image = frappe.get_value(
+            "File", {"file_url": content.image}, "file_name")
         image = frappe.utils.file_manager.get_file(image)
-        image = image[1] # get_file returns an array of 2 items, the first one is file path, the second one is file content
-        params.update({"image": image})
+        params.update(
+            {
+                "image": image[1],
+                "image_path": get_site_name(frappe.local.request.host) + content.image,
+            }
+        )
 
     if linked_external_id:
         params.update({"linked_external_id": linked_external_id})
