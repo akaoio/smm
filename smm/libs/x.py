@@ -15,8 +15,6 @@ from frappe import _
 
 from . import utils
 
-MEDIA_ENDPOINT_URL = "https://upload.twitter.com/1.1/media/upload.json"
-
 
 class X:
     def __init__(self, consumer_id=None, consumer_secret=None, client_id=None, client_secret=None, redirect_uri=None, access_token=None, access_token_secret=None,
@@ -150,6 +148,7 @@ refresh_token=None, scope=[], authorization_type=None, content_type=None, versio
         code_verifier = code_verifier or self.verifier()
         code_challenge = code_challenge or self.challenge(code_verifier)
         code_challenge_method = code_challenge_method or "S256"
+
         if self.version == "oauth1":
             request_token = self.request_token()
             if request_token.status_code == 200:
@@ -159,7 +158,6 @@ refresh_token=None, scope=[], authorization_type=None, content_type=None, versio
                 oauth_token = response.get("oauth_token")
                 state = oauth_token # OAuth 1 doesn't have state, so we use oauth_token instead
                 oauth_token_secret = response.get("oauth_token_secret") # Don't know what to do with this but it's referenced in the docs
-                self.access_token_secret = response.get("oauth_token_secret")
                 oauth_callback_confirmed = response.get("oauth_callback_confirmed")
                 if oauth_callback_confirmed:
                     url = self.request("GET", url=self.auth_url, params={"oauth_token": oauth_token}, request=False)
@@ -253,158 +251,97 @@ refresh_token=None, scope=[], authorization_type=None, content_type=None, versio
             }
         )
     
-    # Upload media file
-    def upload(self, file):
-        self._upload_init(file=file)
-        self._upload_append()
-        self._upload_finalize()
 
-        return {"media_id": self.media_id, "status": "ok"}
-
-    def _get_media_category(self):
-        """
-        Determines media category based on MIME type
-        """
-        mime_type, _ = mimetypes.guess_type(self.file)
-        if mime_type:
-            if mime_type.startswith("image"):
-                return "tweet_image"
-            elif mime_type.startswith("video"):
-                return "tweet_video"
-            elif mime_type.startswith("audio"):
-                return "tweet_audio"  # You can define this category if needed
-
-        return None  # Unable to determine MIME type
-
-    def _upload_init(self, file):
-        """
-        Initializes Upload
-        """
-        print("INIT")
-        self.file = file
-        self.total_bytes = os.path.getsize(self.file)
+class MediaX(X):
+    def __init__(self, file_path, **kwargs):
+        self.file_path = file_path
+        self.total_bytes = os.path.getsize(self.file_path)
         self.media_id = None
         self.processing_info = None
-        mime_type, _ = mimetypes.guess_type(self.file)
+        self.mime_type, _ = mimetypes.guess_type(self.file_path)
+        self.url = "https://upload.twitter.com/1.1/media/upload.json"
+
+        super().__init__(consumer_id=kwargs["consumer_id"],
+                         consumer_secret=kwargs["consumer_secret"],
+                         access_token=kwargs["access_token"],
+                         access_token_secret=kwargs["access_token_secret"])
+
+    def upload(self):
+        self._upload_init()
+        self._upload_append()
+        self._upload_finalize()
+        return {"media_id": self.media_id, "status": "ok"}
+
+    def _upload_init(self):
         params = {
             "command": "INIT",
-            "media_type": mime_type,
+            "media_type": self.mime_type,
             "total_bytes": self.total_bytes,
         }
         media_category = self._get_media_category()
         if media_category:
             params["media_category"] = media_category
 
-        req = self.request(
-            method="POST",
-            url=MEDIA_ENDPOINT_URL,
-            params=params,
-            headers={
-                "authorization_type": "OAuth",
-            },
-        )
-        print(req.json())
-        media_id = req.json()["media_id"]
+        req = self._make_request(params=params)
+        self.media_id = req.json()["media_id"]
 
-        self.media_id = media_id
-
-        print("Media ID: %s" % str(media_id))
+    def _get_media_category(self):
+        if self.mime_type:
+            if self.mime_type.startswith("image"):
+                return "tweet_image"
+            elif self.mime_type.startswith("video"):
+                return "tweet_video"
+            elif self.mime_type.startswith("audio"):
+                return "tweet_audio"  # You can define this category if needed
+        return None  # Unable to determine MIME type
 
     def _upload_append(self):
-        """
-        Uploads media in chunks and appends to chunks uploaded
-        """
         segment_id = 0
         bytes_sent = 0
-        file = open(self.file, "rb")
+        with open(self.file_path, "rb") as file:
+            while bytes_sent < self.total_bytes:
+                chunk = file.read(4 * 1024 * 1024)
+                params = {
+                    "command": "APPEND",
+                    "media_id": self.media_id,
+                    "segment_index": segment_id,
+                }
+                files = {"media": chunk}
+                req = self._make_request(params=params, files=files)
+                if req.status_code < 200 or req.status_code > 299:
+                    print(req.status_code)
+                    print(req.text)
+                    sys.exit(0)
 
-        while bytes_sent < self.total_bytes:
-            chunk = file.read(4 * 1024 * 1024)
-
-            print("APPEND")
-
-            params = {
-                "command": "APPEND",
-                "media_id": self.media_id,
-                "segment_index": segment_id,
-            }
-
-            files = {"media": chunk}
-
-            req = self.request(
-                method="POST",
-                url=MEDIA_ENDPOINT_URL,
-                params=params,
-                files=files,
-                headers={
-                    "authorization_type": "OAuth",
-                },
-            )
-            if req.status_code < 200 or req.status_code > 299:
-                print(req.status_code)
-                print(req.text)
-                sys.exit(0)
-
-            segment_id = segment_id + 1
-            bytes_sent = file.tell()
-
-            print("%s of %s bytes uploaded" %
-                  (str(bytes_sent), str(self.total_bytes)))
-
-        print("Upload chunks complete.")
+                segment_id += 1
+                bytes_sent = file.tell()
 
     def _upload_finalize(self):
-        """
-        Finalizes uploads and starts video processing
-        """
-        print("FINALIZE")
-
         params = {"command": "FINALIZE", "media_id": self.media_id}
-
-        req = self.request(
-            method="POST",
-            url=MEDIA_ENDPOINT_URL,
-            params=params,
-            headers={"authorization_type": "OAuth"},
-        )
-
+        req = self._make_request(params=params)
         self.processing_info = req.json().get("processing_info", None)
         self._upload_check_status()
 
     def _upload_check_status(self):
-        """
-        Checks video processing status
-        """
         if self.processing_info is None:
             return
 
         state = self.processing_info["state"]
-
-        print("Media processing status is %s " % state)
-
         if state == "succeeded":
             return
-
         if state == "failed":
             sys.exit(0)
 
         check_after_secs = self.processing_info["check_after_secs"]
-
-        print("Checking after %s seconds" % str(check_after_secs))
         time.sleep(check_after_secs)
-
-        print("STATUS")
-
         params = {"command": "STATUS", "media_id": self.media_id}
-
-        req = self.request(
-            method="POST",
-            url=MEDIA_ENDPOINT_URL,
-            params=params,
-            headers={"authorization_type": "OAuth"},
-        )
+        req = self._make_request(params=params)
         self.processing_info = req.json().get("processing_info", None)
-        self.check_status()
+        self._upload_check_status()
+
+    def _make_request(self, method="POST", params=None, files=None):
+        headers = {"authorization_type": "OAuth"}
+        return self.request(method=method, url=self.url, params=params, files=files, headers=headers)
 
 
 @frappe.whitelist()
@@ -615,7 +552,7 @@ def send(**args):
     text = utils.find(args, "text")
     image_path = utils.find(args, "image_path")
     token = agent.get_password("access_token") or None
-    api = utils.find(args, "api") or frappe.get_doc("API", "c7618067fe")
+    api = frappe.get_doc("API", agent.api)
     client = X(access_token=token)
 
     # below credentials using for upload media
@@ -637,14 +574,14 @@ def send(**args):
 
     # Upload media if possible
     if image_path:
-        client_oauth1 = X(
+        media_client = MediaX(
+            file_path=image_path,
             consumer_id=consumer_id,
             consumer_secret=consumer_secret,
             access_token=oauth1_access_token,
             access_token_secret=oauth1_token_secret,
         )
-        upload_res = client_oauth1.upload(file=image_path)
-        print("TEST", upload_res)
+        upload_res = media_client.upload()
         params["media"] = [upload_res["media_id"]]
     # Send final content
     response = client.request(

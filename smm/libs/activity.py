@@ -411,7 +411,6 @@ def cast(**args):
 
     if not hasattr(client, "send") or not callable(getattr(client, "send")):
         return
-    
     response = client.send(**params)
     #TEST TEST TEST
     return
