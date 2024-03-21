@@ -1,19 +1,24 @@
-import frappe
-from frappe import _
-import requests
-import json as JSON
 import base64
-import hmac
 import hashlib
-import re
+import hmac
+import json as JSON
+import mimetypes
 import os
+import re
+import sys
 import time
-from urllib.parse import urlencode, quote
+from urllib.parse import quote, urlencode
+
+import frappe
+import requests
+from frappe import _
+
 from . import utils
 
 
 class X:
-    def __init__(self, consumer_id=None, consumer_secret=None, client_id=None, client_secret=None, redirect_uri=None, access_token=None, refresh_token=None, scope=[], authorization_type=None, content_type=None, version=None):
+    def __init__(self, consumer_id=None, consumer_secret=None, client_id=None, client_secret=None, redirect_uri=None, access_token=None, access_token_secret=None,
+refresh_token=None, scope=[], authorization_type=None, content_type=None, version=None):
         self.version = version or "oauth1" if consumer_id or consumer_secret else "oauth2" if client_id or client_secret else "oauth2"
         self.base_url = "https://api.twitter.com"
         self.request_token_url = "https://api.twitter.com/oauth/request_token"
@@ -25,6 +30,7 @@ class X:
         self.scope = scope or ["tweet.read", "tweet.write", "tweet.moderate.write", "users.read", "follows.read", "follows.write", "offline.access", "space.read",
                                "mute.read", "mute.write", "like.read", "like.write", "list.read", "list.write", "block.read", "block.write", "bookmark.read", "bookmark.write"]
         self.access_token = access_token
+        self.access_token_secret = access_token_secret
         self.refresh_token = refresh_token
         self.authorization_type = authorization_type
         self.content_type = content_type
@@ -100,10 +106,9 @@ class X:
         base_url = url.split("?")[0]
         base_url = self.percent_encode(base_url)
         base_string = f"{method.upper()}&{base_url}&{self.percent_encode(self.encode_params(oauth_params))}"
-        
         signing_key = f"{self.percent_encode(self.consumer_secret)}&"
-        if self.access_token:
-            signing_key += f"{self.percent_encode(self.access_token)}"
+        if self.access_token_secret:
+            signing_key += f"{self.percent_encode(self.access_token_secret)}"
         signature = self.signature(signing_key, base_string)
         oauth_params.update({"oauth_signature": signature})
         return oauth_params
@@ -121,7 +126,7 @@ class X:
         self.state = self.verifier()
         return self.state
 
-    def request(self, method="GET", url=None, endpoint=None, params={}, data={}, json={}, headers={}, request=True, **args):
+    def request(self, method="GET", url=None, endpoint=None, params={}, data={}, json={}, headers={}, request=True, files={},**args):
         url = url or self.base_url + endpoint
 
         headers = self.headers(headers=headers, method=method, url=url, params=params, data=data, json=json)
@@ -134,7 +139,7 @@ class X:
         if method == "GET" and not request:
             return url + "?" + urlencode(params)
         if request:
-            return requests.request(method, url, params=params, data=data, json=json, headers=headers)
+            return requests.request(method, url, params=params, data=data, json=json, headers=headers, files=files)
 
     # Returns authorization URL, state, code_verifier, code_challenge, code_challenge_method
     def authorize(self, redirect_uri=None, scope=[], state=None, code_verifier=None, code_challenge=None, code_challenge_method="S256"):
@@ -246,25 +251,97 @@ class X:
             }
         )
     
-    # Upload media file
-    # IMPORTANT: This method doesn't work yet!
-    def upload(self, file):
-        url = "https://upload.twitter.com/1.1/media/upload.json"
-        # media_data = base64.b64encode(file).decode("utf-8")
-        response = self.request(
-            "POST",
-            url=url,
-            params={
-                "media_category": "tweet_image"
-            },
-            data={
-                "media": file
-                # "media_data": media_data
-            },
-            files={"media": file},
-            headers={"authorization_type": "Bearer", "content_type": "urlencoded"}
-        )
-        return response
+
+class MediaX(X):
+    def __init__(self, file_path, **kwargs):
+        self.file_path = file_path
+        self.total_bytes = os.path.getsize(self.file_path)
+        self.media_id = None
+        self.processing_info = None
+        self.mime_type, _ = mimetypes.guess_type(self.file_path)
+        self.url = "https://upload.twitter.com/1.1/media/upload.json"
+
+        super().__init__(consumer_id=kwargs["consumer_id"],
+                         consumer_secret=kwargs["consumer_secret"],
+                         access_token=kwargs["access_token"],
+                         access_token_secret=kwargs["access_token_secret"])
+
+    def upload(self):
+        self._upload_init()
+        self._upload_append()
+        self._upload_finalize()
+        return {"media_id": self.media_id, "status": "ok"}
+
+    def _upload_init(self):
+        params = {
+            "command": "INIT",
+            "media_type": self.mime_type,
+            "total_bytes": self.total_bytes,
+        }
+        media_category = self._get_media_category()
+        if media_category:
+            params["media_category"] = media_category
+
+        req = self._make_request(params=params)
+        self.media_id = req.json()["media_id"]
+
+    def _get_media_category(self):
+        if self.mime_type:
+            if self.mime_type.startswith("image"):
+                return "tweet_image"
+            elif self.mime_type.startswith("video"):
+                return "tweet_video"
+            elif self.mime_type.startswith("audio"):
+                return "tweet_audio"  # You can define this category if needed
+        return None  # Unable to determine MIME type
+
+    def _upload_append(self):
+        segment_id = 0
+        bytes_sent = 0
+        with open(self.file_path, "rb") as file:
+            while bytes_sent < self.total_bytes:
+                chunk = file.read(4 * 1024 * 1024)
+                params = {
+                    "command": "APPEND",
+                    "media_id": self.media_id,
+                    "segment_index": segment_id,
+                }
+                files = {"media": chunk}
+                req = self._make_request(params=params, files=files)
+                if req.status_code < 200 or req.status_code > 299:
+                    print(req.status_code)
+                    print(req.text)
+                    sys.exit(0)
+
+                segment_id += 1
+                bytes_sent = file.tell()
+
+    def _upload_finalize(self):
+        params = {"command": "FINALIZE", "media_id": self.media_id}
+        req = self._make_request(params=params)
+        self.processing_info = req.json().get("processing_info", None)
+        self._upload_check_status()
+
+    def _upload_check_status(self):
+        if self.processing_info is None:
+            return
+
+        state = self.processing_info["state"]
+        if state == "succeeded":
+            return
+        if state == "failed":
+            sys.exit(0)
+
+        check_after_secs = self.processing_info["check_after_secs"]
+        time.sleep(check_after_secs)
+        params = {"command": "STATUS", "media_id": self.media_id}
+        req = self._make_request(params=params)
+        self.processing_info = req.json().get("processing_info", None)
+        self._upload_check_status()
+
+    def _make_request(self, method="POST", params=None, files=None):
+        headers = {"authorization_type": "OAuth"}
+        return self.request(method=method, url=self.url, params=params, files=files, headers=headers)
 
 
 @frappe.whitelist()
@@ -363,7 +440,8 @@ def callback(**args):
                     frappe.throw("Access token not received. Authorization failed.")
 
                 tokens = {
-                    "oauth1_access_token": response.get("oauth_token")
+                    "oauth1_access_token": response.get("oauth_token"),
+                    "oauth1_token_secret": response.get("oauth_token_secret"),
                 }
 
         if version == "oauth2" and state and code:
@@ -472,9 +550,16 @@ def send(**args):
     agent = utils.find(args, "agent") or frappe.get_doc("Agent", name)
     activity_type = utils.find(args, "type")
     text = utils.find(args, "text")
-    image = utils.find(args, "image")
+    image_path = utils.find(args, "image_path")
     token = agent.get_password("access_token") or None
+    api = frappe.get_doc("API", agent.api)
     client = X(access_token=token)
+
+    # below credentials using for upload media
+    oauth1_access_token = agent.get_password("oauth1_access_token") or None
+    oauth1_token_secret = agent.get_password("oauth1_token_secret") or None
+    consumer_id = api.get_password("consumer_id") or None
+    consumer_secret = api.get_password("consumer_secret") or None
 
     linked_external_id = utils.find(args, "linked_external_id")
 
@@ -482,25 +567,28 @@ def send(**args):
     if linked_external_id:
         types = {
             "Post Comment": {"reply": {"in_reply_to_tweet_id": linked_external_id}},
-            "Share Content": {"quote_tweet_id": linked_external_id}
+            "Share Content": {"quote_tweet_id": linked_external_id},
         }
         param = types.get(activity_type)
         params.update(param)
-    
+
     # Upload media if possible
-    if image:
-        upload = client.upload(image)
-        # content = upload.content.json()
-        print("TEST", upload.status_code, upload.content)
-    
-    return
-    
+    if image_path:
+        media_client = MediaX(
+            file_path=image_path,
+            consumer_id=consumer_id,
+            consumer_secret=consumer_secret,
+            access_token=oauth1_access_token,
+            access_token_secret=oauth1_token_secret,
+        )
+        upload_res = media_client.upload()
+        params["media"] = [upload_res["media_id"]]
     # Send final content
     response = client.request(
         "POST",
         endpoint="/2/tweets",
         json=params,
-        headers={"authorization_type": "Bearer", "content_type": "json"}
+        headers={"authorization_type": "Bearer", "content_type": "json"},
     )
 
     return response
