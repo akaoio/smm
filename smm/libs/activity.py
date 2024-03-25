@@ -396,15 +396,7 @@ def cast(**args):
     }
 
     if content.get("image") is not None:
-        image = frappe.get_value(
-            "File", {"file_url": content.image}, "file_name")
-        image = frappe.utils.file_manager.get_file(image)
-        params.update(
-            {
-                "image": image[1],
-                "image_path": get_site_name(frappe.local.request.host) + content.image,
-            }
-        )
+        params.update({"image_path": utils.get_absolute_path(content.image)})
 
     if linked_external_id:
         params.update({"linked_external_id": linked_external_id})
@@ -412,8 +404,6 @@ def cast(**args):
     if not hasattr(client, "send") or not callable(getattr(client, "send")):
         return
     response = client.send(**params)
-    #TEST TEST TEST
-    return
 
     # If type of response is dict and has json property
     data = response.json()
