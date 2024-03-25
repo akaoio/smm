@@ -582,16 +582,16 @@ def send(**args):
             access_token_secret=oauth1_token_secret,
         )
         upload_res = media_client.upload()
-        params["media"] = [upload_res["media_id"]]
+        params["media"] = {"media_ids": [str(upload_res["media_id"])]}
     # Send final content
     response = client.request(
         "POST",
         endpoint="/2/tweets",
         json=params,
-        headers={"authorization_type": "Bearer", "content_type": "json"},
+        headers={"authorization_type": "Bearer"},
     )
-
     return response
+
 
 # IMPORTANT: This function is under development and not working yet, because API needs to be upgraded to Basic tier, which is paid.
 # This function requires a paid API subscription
