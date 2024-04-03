@@ -112,6 +112,7 @@ def transform(source={}, context={}):
 
 
 def get_absolute_path(file_name):
+    file_path = None
     if file_name.startswith("/files/"):
         file_path = f"{frappe.utils.get_bench_path()}/sites/{frappe.utils.get_site_base_path()[2:]}/public{file_name}"
     if file_name.startswith("/private/"):
