@@ -1,7 +1,9 @@
-import frappe
-from frappe import _
-import requests
 from urllib.parse import urlencode
+
+import frappe
+import requests
+from frappe import _
+
 from . import utils
 
 
@@ -12,19 +14,46 @@ class TelegramBot:
             return
         self.base_url = f"https://api.telegram.org/bot{token}"
 
-    def request(self, method="POST", url=None, endpoint=None, params={}, data={}, json={}, headers={}, request=True):
+    def request(self, method="POST", url=None, endpoint=None, params={}, data={}, json={}, headers=None, request=True,files=None):
         url = url or self.base_url + endpoint
 
-        headers = {
-            "Content-Type": "application/json",
-            **headers
+        if headers is None:
+            headers = {
+                "Content-Type": "application/json",
         }
 
         # Complete URL with encoded parameters
         if method == "GET" and not request:
             return url + "?" + urlencode(params)
         if request:
-            return requests.request(method, url, params=params, data=data, json=json, headers=headers)
+            return requests.request(method, url, params=params, data=data, json=json, headers=headers, files=files)
+
+    def send_message(self, chat_id: str, text: str, extra_payload={}):
+        """
+        Send text to group/channel without image
+        """
+        payload = {
+            "chat_id": chat_id,
+            "text": text
+        }
+        payload.update(extra_payload)
+        response = self.request(endpoint="/sendMessage", params=payload)
+        return response
+
+    def send_photo(self, chat_id: str, text: str, image_path: str, extra_payload={}):
+        """
+        Send photo to group/channel with image. 
+        Now "text" is caption of image.
+        """
+        payload = {
+            "chat_id": chat_id,
+            "caption": text,
+        }
+        payload.update(extra_payload)
+        files = {"photo": open(image_path, "rb")}
+        response = self.request(
+            endpoint="/sendPhoto", headers={}, data=payload, files=files)
+        return response
 
 
 @frappe.whitelist()
@@ -77,6 +106,7 @@ def send(**args):
     name = utils.find(args, "name")
     agent = utils.find(args, "agent") or frappe.get_doc("Agent", name)
     text = utils.find(args, "text")
+    image_path = utils.find(args, "image_path")
     api = frappe.get_doc("API", agent.get("api"))
     token = api.get_password("token") or None
     alias = agent.get("alias")
@@ -91,7 +121,12 @@ def send(**args):
     params = {"chat_id": chat_id, "text": text}
 
     if linked_external_id:
-        params.update({"reply_to_message_id": linked_external_id})
-
-    response = client.request(endpoint="/sendMessage", params=params)
+        params.update(
+            {"extra_payload":{"reply_to_message_id": linked_external_id}}
+        )
+    if image_path:
+        params["image_path"] = image_path
+        response = client.send_photo(**params)
+    else:
+        response = client.send_message(**params)
     return response
