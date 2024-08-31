@@ -162,8 +162,8 @@ def generate_content(**args):
         for prompt in prompts:
             messages.append({"role": "user", "content": prompt})
         data = {
-            "model": "gpt-3.5-turbo",
-            # "model": "gpt-4-turbo",
+            # "model": "gpt-3.5-turbo",
+            "model": "gpt-4-turbo",
             "messages": messages,
             "n": 1,
             "tools": [
