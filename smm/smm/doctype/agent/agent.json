@@ -161,9 +161,11 @@
    "length": 500
   },
   {
+   "depends_on": "eval: doc.provider == 'X'",
    "fieldname": "oauth1_token_secret",
    "fieldtype": "Password",
-   "label": "OAuth 1 Token Secret"
+   "label": "OAuth 1 Token Secret",
+   "length": 500
   }
  ],
  "index_web_pages_for_search": 1,
