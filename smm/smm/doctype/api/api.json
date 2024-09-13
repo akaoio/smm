@@ -117,6 +117,18 @@
    "fieldtype": "Password",
    "label": "Consumer Secret",
    "mandatory_depends_on": "eval: ['Facebook'].includes(doc.provider)"
+  },
+  {
+   "depends_on": "eval: doc.provider == 'OpenAI'",
+   "fieldname": "model",
+   "fieldtype": "Select",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "AI Model",
+   "options": "\nGPT-4o\nGPT-3.5 Turbo",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
