@@ -120,16 +120,16 @@
    "mandatory_depends_on": "eval: ['Facebook'].includes(doc.provider)"
   },
   {
+   "default": "GPT-4o",
    "depends_on": "eval: doc.provider == 'OpenAI'",
    "fieldname": "model",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "in_filter": 1,
    "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "AI Model",
-   "mandatory_depends_on": "eval: doc.provider == 'OpenAI'",
-   "options": "GPT-4o"
+   "mandatory_depends_on": "eval: doc.provider == 'OpenAI'"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -139,7 +139,7 @@
    "link_fieldname": "api"
   }
  ],
- "modified": "2024-09-15 10:14:58.309215",
+ "modified": "2024-09-15 15:17:01.645844",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "API",

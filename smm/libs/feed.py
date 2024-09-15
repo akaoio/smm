@@ -31,7 +31,6 @@ def fetch(**args):
         return
     
     doc = frappe.get_doc("Feed Provider", name)
-    print(doc.type)
     if not doc.enabled:
         return
     

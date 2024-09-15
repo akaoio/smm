@@ -25,7 +25,7 @@ def fetch(**args):
         chart_image_url = convert_tradingview_links(
              str(clipboard_data)
         )
-        feeds.append({"title": "Chart Link: "+chart_image_url, "image_url": chart_image_url})
+        feeds.append({"title": "Screenshot: "+chart_image_url, "image_url": chart_image_url})
     except Exception:
         frappe.msgprint(_("Error fetching feeds from {0}").format(url))
         return
