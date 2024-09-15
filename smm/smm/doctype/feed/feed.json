@@ -5,7 +5,14 @@
   "doctype": "DocType",
   "editable_grid": 1,
   "engine": "InnoDB",
-  "field_order": ["provider", "title", "description", "url"],
+  "field_order": [
+    "provider",
+    "title",
+    "description",
+    "url",
+    "image_url",
+    "preview"
+  ],
   "fields": [
     {
       "fieldname": "provider",
@@ -25,19 +32,31 @@
       "fieldname": "description",
       "fieldtype": "Long Text",
       "in_list_view": 1,
-      "label": "Description",
-      "reqd": 1
+      "label": "Description"
     },
     {
       "fieldname": "url",
       "fieldtype": "Data",
       "label": "URL",
       "length": 280
+    },
+    {
+      "fieldname": "image_url",
+      "fieldtype": "Data",
+      "hidden": 1,
+      "label": "Image URL"
+    },
+    {
+      "depends_on": "eval:doc.image_url",
+      "fieldname": "preview",
+      "fieldtype": "HTML",
+      "label": "Preview",
+      "options": "<img alt=\"Image\" src=\"{{ doc.image_url }}\" style=\"max-width: 100%; height: auto;\">"
     }
   ],
   "index_web_pages_for_search": 1,
   "links": [],
-  "modified": "2023-07-16 23:34:01.390401",
+  "modified": "2024-09-14 21:08:49.754414",
   "modified_by": "Administrator",
   "module": "SMM",
   "name": "Feed",

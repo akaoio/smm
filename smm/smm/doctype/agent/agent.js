@@ -11,8 +11,8 @@ frappe.ui.form.on("Agent", {
     frappe.call({
       method: "smm.libs.agent.authorize",
       args: {
-        "version": "oauth1",
-        ...form.selected_doc
+        version: "oauth1",
+        ...form.selected_doc,
       },
       callback: authorize_oauth_callback,
     });
@@ -21,8 +21,8 @@ frappe.ui.form.on("Agent", {
     frappe.call({
       method: "smm.libs.agent.authorize",
       args: {
-        "version": "oauth2",
-        ...form.selected_doc
+        version: "oauth2",
+        ...form.selected_doc,
       },
       callback: authorize_oauth_callback,
     });
@@ -30,13 +30,13 @@ frappe.ui.form.on("Agent", {
   profile: (form) => {
     frappe.call({
       method: "smm.libs.agent.profile",
-      args: form.selected_doc
+      args: form.selected_doc,
     });
   },
   refresh_access_token: (form) => {
     frappe.call({
       method: "smm.libs.agent.refresh_access_token",
-      args: form.selected_doc
+      args: form.selected_doc,
     });
-  }
+  },
 });

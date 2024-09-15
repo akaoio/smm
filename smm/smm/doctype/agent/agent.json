@@ -161,9 +161,11 @@
    "length": 500
   },
   {
+   "depends_on": "eval: doc.provider == 'X'",
    "fieldname": "oauth1_token_secret",
    "fieldtype": "Password",
-   "label": "OAuth 1 Token Secret"
+   "label": "OAuth 1 Token Secret",
+   "length": 500
   }
  ],
  "index_web_pages_for_search": 1,
@@ -173,7 +175,7 @@
    "link_fieldname": "agent"
   }
  ],
- "modified": "2024-03-17 21:00:05.038037",
+ "modified": "2024-09-14 21:54:36.352754",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Agent",

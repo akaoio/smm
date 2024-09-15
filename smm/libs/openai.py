@@ -1,10 +1,12 @@
-import frappe
-from frappe import _
-import random
-import json as JSON
-import requests
-import PIL
 import io
+import json as JSON
+import random
+
+import frappe
+import PIL
+import requests
+from frappe import _
+
 from ..libs import utils
 
 
@@ -75,6 +77,7 @@ def generate_content(**args):
         return
     
     feeds = []
+    feed_images = []
     prompts = []
 
     # If given a linked Network Activity, try to get Content of that Activity and generate responsive Contents to it.
@@ -103,12 +106,13 @@ def generate_content(**args):
         feed_provider = frappe.get_doc("Feed Provider", item.feed_provider)
         # If feed provider is virtual, try to get feeds from the `feeds` field, which is a JSON array, then append to `feeds` list.
         # Else get feeds from the database.
-        docs = JSON.loads(feed_provider.feeds) if feed_provider.feeds and feed_provider.virtual else frappe.db.get_list("Feed", filters={"provider": item.feed_provider}, fields=["name", "title", "description"], order_by="creation desc", limit_start=0, limit_page_length=20)
+        docs = JSON.loads(feed_provider.feeds) if feed_provider.feeds and feed_provider.virtual else frappe.db.get_list("Feed", filters={"provider": item.feed_provider}, fields=["name", "title", "description", "image_url"], order_by="creation desc", limit_start=0, limit_page_length=20)
         if item.limit and len(docs) > item.limit: docs = random.sample(docs, item.limit)
         for doc in docs:
             content = join_data(doc)
             if content and content not in feeds: feeds.append(content)
-
+            if doc.image_url:
+                feed_images.append(doc.image_url)
     for item in feed_list:
         doc = frappe.get_doc("Feed", item.feed)
         content = join_data(doc)
@@ -161,6 +165,14 @@ def generate_content(**args):
         messages = []
         for prompt in prompts:
             messages.append({"role": "user", "content": prompt})
+        for url in feed_images:
+            messages.append(
+                {
+                    "role": "user",
+                    "content": [{"type": "image_url", "image_url": {"url": url}}],
+                }
+            )
+
         data = {
             # "model": "gpt-3.5-turbo",
             "model": "gpt-4-turbo",
@@ -223,8 +235,9 @@ def generate_content(**args):
             })
             new_doc.insert()
             frappe.db.commit()
-    
-    
+            if len(feed_images) > 0:
+                save_image(feed_images[0])
+
     if generate_image:
         prompt = description if description_to_image and description and len(description) > 0 else ". ".join(prompts) if len(prompts) > 0 else None
         if not prompt:
