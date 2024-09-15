@@ -40,7 +40,7 @@ def process_plans():
                 )
             )
         )
-    ).orderby(doctype.start_date, doctype.start_time).limit(3).run(as_dict=True)
+    ).orderby(doctype.start_date, doctype.start_time).run(as_dict=True)
 
     for item in network_activity_plans:
         activity.generate_activity(name=item.name)
