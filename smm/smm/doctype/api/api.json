@@ -128,8 +128,8 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "AI Model",
-   "options": "GPT-4o",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.provider == 'OpenAI'",
+   "options": "GPT-4o"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -139,7 +139,7 @@
    "link_fieldname": "api"
   }
  ],
- "modified": "2024-09-14 21:53:31.531605",
+ "modified": "2024-09-15 10:14:58.309215",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "API",
