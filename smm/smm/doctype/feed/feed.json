@@ -10,8 +10,8 @@
     "title",
     "description",
     "url",
-    "image_url",
-    "preview"
+    "image",
+    "image_preview"
   ],
   "fields": [
     {
@@ -41,22 +41,20 @@
       "length": 280
     },
     {
-      "fieldname": "image_url",
-      "fieldtype": "Data",
-      "hidden": 1,
-      "label": "Image URL"
+      "fieldname": "image",
+      "fieldtype": "Attach Image",
+      "label": "Image"
     },
     {
-      "depends_on": "eval:doc.image_url",
-      "fieldname": "preview",
-      "fieldtype": "HTML",
-      "label": "Preview",
-      "options": "<img alt=\"Image\" src=\"{{ doc.image_url }}\" style=\"max-width: 100%; height: auto;\">"
+      "fieldname": "image_preview",
+      "fieldtype": "Image",
+      "label": "Image Preview",
+      "options": "image"
     }
   ],
   "index_web_pages_for_search": 1,
   "links": [],
-  "modified": "2024-09-14 21:08:49.754414",
+  "modified": "2024-09-15 22:31:17.316086",
   "modified_by": "Administrator",
   "module": "SMM",
   "name": "Feed",

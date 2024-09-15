@@ -1,8 +1,10 @@
+import io
 import json
 import re
 from datetime import datetime, timedelta
 
 import frappe
+import PIL
 
 
 def doc_data(data):
@@ -118,3 +120,30 @@ def get_absolute_path(file_name):
     if file_name.startswith("/private/"):
         file_path = f"{frappe.utils.get_bench_path()}/sites/{frappe.utils.get_site_base_path()[2:]}{file_name}"
     return file_path
+
+
+def check_folder(**args):
+    name = find(args, "name") or ""
+    if not frappe.db.exists(
+        {
+            "doctype": "File",
+            "name": f"Home/{name}",
+            "file_name": name,
+            "is_folder": True,
+        }
+    ):
+        folder = frappe.get_doc(
+            {"doctype": "File", "file_name": name, "is_folder": True, "folder": "Home"}
+        )
+        folder.insert()
+        frappe.db.commit()
+        return folder
+
+
+def to_png(content):
+    content = io.BytesIO(content)
+    content = PIL.Image.open(content)
+    buffer = io.BytesIO()
+    content.save(buffer, "PNG")
+    buffer.seek(0)  # Ensure pointer is at the start of the file
+    return buffer.getvalue()

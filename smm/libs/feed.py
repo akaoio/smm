@@ -1,3 +1,4 @@
+import base64
 import json
 
 import frappe
@@ -65,17 +66,39 @@ def fetch(**args):
             doc.update({"feeds": json.dumps(process.get("feeds"), indent=4)})
             if not doc.virtual:
                 for feed in process.get("feeds"):
+                    file_data = base64.b64decode(feed.pop("image"))
                     # Check if the feed already exists before inserting
                     if not frappe.db.exists({"doctype":"Feed", **feed}):
-                        frappe.get_doc({
+                        new_doc = frappe.get_doc({
                             "owner": owner,
                             "doctype": "Feed",
                             "provider": name,
                             **feed
                         }).insert()
                         frappe.db.commit()
+                        save_image(file_data, new_doc)
     # Update fetched datetime
     doc.update({"fetched": frappe.utils.now()})
     doc.save()
     frappe.db.commit()
     return True
+
+
+def save_image(content, doc):
+    # Convert file content to PNG using PIL and io
+    content = utils.to_png(content)
+    random_name = frappe.utils.random_string(24) + ".png"
+    utils.check_folder(name="SMM")
+    file = frappe.utils.file_manager.save_file(
+        random_name,
+        content,
+        dt="Feed",
+        dn=doc.name,
+        df="image",
+        folder="Home/SMM",
+        decode=False,
+        is_private=False,
+    )
+    doc.update({"image": file.get("file_url")})
+    doc.save()
+    frappe.db.commit()
