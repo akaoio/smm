@@ -41,7 +41,7 @@ def fetch(**args):
     
     api = frappe.get_doc("API", agent.api) if hasattr(agent, "api") else frappe.get_doc("API", doc.api) if doc.api else None
         
-    client = rss if doc.type == "RSS" else crawler if doc.type == "Crawler" and hasattr(api, "provider") else None
+    client = rss if doc.type == "RSS" else crawler if doc.type == "Crawler" else None
     if not client or not hasattr(client, method) or not callable(getattr(client, method)):
         return
     
