@@ -1,0 +1,4 @@
+dependencies = [
+    "selenium==4.24.0",
+    "webdriver_manager==4.0.2"
+]
