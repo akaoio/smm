@@ -23,6 +23,9 @@
   "duration",
   "fetched",
   "feeds",
+  "customize_crawler",
+  "img_w",
+  "img_h",
   "geek_section",
   "payload",
   "response",
@@ -130,6 +133,29 @@
    "fieldtype": "Link",
    "label": "API",
    "options": "API"
+  },
+  {
+   "default": "1024",
+   "depends_on": "eval:doc.type=='Crawler'",
+   "description": "Width of the crawled image. Set if Type is Crawler",
+   "fieldname": "img_w",
+   "fieldtype": "Int",
+   "label": "Width"
+  },
+  {
+   "default": "768",
+   "depends_on": "eval: ['Crawler'].includes(doc.type)",
+   "description": "Height of the crawled image. Set if Type is Crawler",
+   "fieldname": "img_h",
+   "fieldtype": "Int",
+   "label": "Height"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval: ['Crawler'].includes(doc.type)",
+   "fieldname": "customize_crawler",
+   "fieldtype": "Section Break",
+   "label": "Customize crawler"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -139,7 +165,7 @@
    "link_fieldname": "provider"
   }
  ],
- "modified": "2024-09-14 12:37:30.151800",
+ "modified": "2024-09-15 21:15:50.895158",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Feed Provider",
