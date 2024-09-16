@@ -6,36 +6,8 @@
    fill="none"
    version="1.1"
    id="svg3"
-   sodipodi:docname="smm-logo.svg"
-   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
-  <sodipodi:namedview
-     id="namedview3"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="3.3205128"
-     inkscape:cx="59.779923"
-     inkscape:cy="46.830116"
-     inkscape:window-width="1920"
-     inkscape:window-height="991"
-     inkscape:window-x="-9"
-     inkscape:window-y="-9"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg3" />
-  <path
-     d="M 93.4394,0 H 23.5606 C 10.5485,0 0,10.5485 0,23.5606 V 93.4394 C 0,106.452 10.5485,117 23.5606,117 H 93.4394 C 106.452,117 117,106.452 117,93.4394 V 23.5606 C 117,10.5485 106.452,0 93.4394,0 Z"
-     fill="#a1eec9"
-     id="path1"
-     clip-path="url(#clipPath6)"
-     style="fill:#ffe680" />
   <defs
      id="defs3">
     <clipPath
@@ -80,7 +52,25 @@
            y="0" />
       </g>
     </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath6-4">
+      <g
+         id="g7-4">
+        <rect
+           width="117"
+           height="117"
+           fill="#ffffff"
+           id="rect6-1"
+           x="0"
+           y="0" />
+      </g>
+    </clipPath>
   </defs>
+  <path
+     style="fill:#ffe680;stroke:none"
+     d="M 93.439401,0 H 23.5606 C 10.5485,0 2.5e-7,10.5485 2.5e-7,23.5606 V 93.4394 C 2.5e-7,106.452 10.5485,117 23.5606,117 H 93.439401 C 106.452,117 117,106.452 117,93.4394 V 23.5606 C 117,10.5485 106.452,0 93.439401,0 Z"
+     id="path2" />
   <g
      id="g8"
      style="fill:#0b313a;fill-opacity:1;stroke:none;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
@@ -92,14 +82,6 @@
     <path
        d="m -52.68,15.216 a 5.75,5.75 0 1 0 -5.75,-5.75 5.756,5.756 0 0 0 5.75,5.75 z m 0,-8 a 2.25,2.25 0 1 1 -2.25,2.25 2.253,2.253 0 0 1 2.25,-2.25 z"
        id="path2-7"
-       style="fill:#0b313a;fill-opacity:1;stroke:none;stroke-width:0;stroke-dasharray:none;stroke-opacity:1" />
-    <path
-       d="m -36.624,15.216 a 5.75,5.75 0 1 0 -5.75,-5.75 5.756,5.756 0 0 0 5.75,5.75 z m 0,-8 a 2.25,2.25 0 1 1 -2.25,2.25 2.253,2.253 0 0 1 2.25,-2.25 z"
-       id="path3-0"
-       style="fill:#0b313a;fill-opacity:1;stroke:none;stroke-width:0;stroke-dasharray:none;stroke-opacity:1" />
-    <path
-       d="m -6.728,11.216 h 44.745 a 1.75,1.75 0 0 0 0,-3.5 H -6.728 a 1.75,1.75 0 0 0 0,3.5 z"
-       id="path4"
        style="fill:#0b313a;fill-opacity:1;stroke:none;stroke-width:0;stroke-dasharray:none;stroke-opacity:1" />
     <path
        d="m 35.817,32.716 h -46 a 1.751,1.751 0 0 0 -1.75,1.75 v 11 a 1.75,1.75 0 0 0 1.75,1.75 h 46 a 1.749,1.749 0 0 0 1.75,-1.75 v -11 a 1.75,1.75 0 0 0 -1.75,-1.75 z m -1.75,11 h -42.5 v -7.5 h 42.5 z"
@@ -120,10 +102,6 @@
     <path
        d="M -20.567,67.487 V 34.466 a 1.751,1.751 0 0 0 -1.75,-1.75 h -34 a 1.75,1.75 0 0 0 -1.75,1.75 v 44 a 1.749,1.749 0 0 0 1.75,1.75 h 34 a 1.75,1.75 0 0 0 1.75,-1.75 z m -3.5,-31.271 v 27.959 l -19.874,-13.52 a 1.749,1.749 0 0 0 -2.183,0.172 l -8.443,7.93 V 36.216 Z m -30.5,40.5 V 63.558 l 9.817,-9.22 20.683,14.07 v 8.308 z"
        id="path9"
-       style="fill:#0b313a;fill-opacity:1;stroke:none;stroke-width:0;stroke-dasharray:none;stroke-opacity:1" />
-    <path
-       d="m -33.023,51.113 a 5.762,5.762 0 1 0 -5.762,-5.763 5.769,5.769 0 0 0 5.762,5.763 z m 0,-8.024 a 2.262,2.262 0 1 1 -2.262,2.261 2.264,2.264 0 0 1 2.262,-2.261 z"
-       id="path10"
        style="fill:#0b313a;fill-opacity:1;stroke:none;stroke-width:0;stroke-dasharray:none;stroke-opacity:1" />
   </g>
 </svg>
