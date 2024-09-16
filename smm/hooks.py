@@ -4,6 +4,17 @@ app_publisher = "mimiza"
 app_description = "Social Media Marketing and Management system"
 app_email = "dev@mimiza.com"
 app_license = "MIT"
+app_logo_url = "/assets/smm/images/smm-logo.svg"
+app_home = "/app/smm"
+
+add_to_apps_screen = [
+	{
+		"name": "smm",
+		"logo": "/assets/smm/images/smm-logo.svg",
+		"title": "SMM",
+		"route": "/app/smm"
+	}
+]
 
 scheduler_events = {
     "all": [
