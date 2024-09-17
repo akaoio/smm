@@ -106,8 +106,9 @@ def generate_content(**args):
         feed_provider = frappe.get_doc("Feed Provider", item.feed_provider)
         # If feed provider is virtual, try to get feeds from the `feeds` field, which is a JSON array, then append to `feeds` list.
         # Else get feeds from the database.
-        docs = JSON.loads(feed_provider.feeds) if feed_provider.feeds and feed_provider.virtual else frappe.db.get_list("Feed", filters={"provider": item.feed_provider}, fields=["name", "title", "description", "image"], order_by="creation desc", limit_start=0, limit_page_length=20)
-        if item.limit and len(docs) > item.limit: docs = random.sample(docs, item.limit)
+        docs = JSON.loads(feed_provider.feeds) if feed_provider.feeds and feed_provider.virtual else frappe.db.get_list("Feed", filters={"provider": item.feed_provider}, fields=["name", "title", "description", "image"], order_by="creation desc", limit_start=0, limit_page_length=item.limit)
+        if len(docs) > item.limit: docs = random.sample(docs, item.limit)
+
         for doc in docs:
             content = join_data(doc)
             if content and content not in feeds: feeds.append(content)
@@ -235,7 +236,7 @@ def generate_content(**args):
             new_doc.insert()
             frappe.db.commit()
             if len(feed_images) > 0:
-                save_image(feed_images[0])
+                save_image(random.choice(feed_images))
 
     if generate_image:
         prompt = description if description_to_image and description and len(description) > 0 else ". ".join(prompts) if len(prompts) > 0 else None
