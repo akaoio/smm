@@ -477,7 +477,8 @@ def callback(**args):
             frappe.db.commit()
 
             # Get user profile after successful authorization
-            profile(name=doc.name)
+            if version == "oauth2":
+                profile(name=doc.name)
 
             redirect_url = f"/app/agent/{doc.name}"
             frappe.local.response.update({"type": "redirect", "location": redirect_url, "message": _("Redirecting to {0} {1}").format(_("Agent"), doc.name)})
