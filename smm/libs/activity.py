@@ -396,7 +396,18 @@ def cast(**args):
     }
 
     if content.get("image") is not None:
-        params.update({"image_path": utils.get_absolute_path(content.image)})
+        if len(content.image) > 1:
+            params.update(
+                {
+                    "media_item_paths": [
+                        utils.get_absolute_path(item.image) for item in content.image
+                    ]
+                }
+            )
+        else:
+            params.update(
+                {"image_path": utils.get_absolute_path(content.image[0].image)}
+            )
 
     if linked_external_id:
         params.update({"linked_external_id": linked_external_id})
@@ -421,7 +432,11 @@ def cast(**args):
         if provider == "X":
             external_id = data.get("data").get("id")
         elif provider == "Telegram Bot":
-            external_id = data.get("result").get("message_id")
+            result = data.get("result")
+            if isinstance(result,list):
+                external_id = result[0].get("media_group_id")
+            else:
+                external_id = data.get("result").get("message_id")
         if external_id:
             doc.update({"external_id": external_id})
     else:
