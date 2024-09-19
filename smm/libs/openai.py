@@ -1,6 +1,7 @@
 import io
 import json as JSON
 import random
+from typing import List, Union
 
 import frappe
 import PIL
@@ -63,19 +64,19 @@ def join_data(args):
 @frappe.whitelist()
 def generate_content(**args):
     mechanism = utils.find(args, "name") or utils.find(args, "mechanism")
-    
+
     if not frappe.db.exists("Content Mechanism", mechanism):
         frappe.msgprint(_("{0} {1} does not exist").format(_("Content Mechanism"), mechanism))
         return
-    
+
     doc = frappe.get_doc("Content Mechanism", mechanism)
-    
+
     owner = doc.owner or frappe.get_user().name
-    
+
     if doc.enabled == 0:
         frappe.msgprint(_("{0} {1} is disabled").format(_("Content Mechanism"), mechanism))
         return
-    
+
     feeds = []
     feed_images = []
     prompts = []
@@ -101,7 +102,7 @@ def generate_content(**args):
     feed_provider_list = doc.feed_providers
     feed_list = doc.feeds
     prompt_list = doc.prompts
-    
+
     for item in feed_provider_list:
         feed_provider = frappe.get_doc("Feed Provider", item.feed_provider)
         # If feed provider is virtual, try to get feeds from the `feeds` field, which is a JSON array, then append to `feeds` list.
@@ -136,31 +137,37 @@ def generate_content(**args):
         return
 
     client = OpenAI(token)
-    
+
     new_doc = frappe.get_doc({
         "owner": owner,
         "doctype": "Content",
         "mechanism": mechanism
     })
-    
+
     description = None
-    
-    def save_image(url):
-        file = requests.get(url=url)
-        # Convert file content to PNG using PIL and io
-        content = to_png(file.content)
-        random_name = frappe.utils.random_string(24) + ".png"
-        if not new_doc.name:
-            new_doc.insert()
-            frappe.db.commit()
+
+    def save_image(urls: Union[str, List[str]]):
+        if isinstance(urls, str):
+            urls = urls.split(",")
+        image_items = []
         check_folder(name="SMM")
-        file = frappe.utils.file_manager.save_file(random_name, content, dt="Content", dn=new_doc.name, df="image", folder="Home/SMM", decode=False, is_private=False)
+        for url in urls:
+            file = requests.get(url=url)
+            # Convert file content to PNG using PIL and io
+            content = to_png(file.content)
+            random_name = frappe.utils.random_string(24) + ".png"
+            if not new_doc.name:
+                new_doc.insert()
+                frappe.db.commit()
+
+            file = frappe.utils.file_manager.save_file(random_name, content, dt="Content", dn=new_doc.name, df="image", folder="Home/SMM", decode=False, is_private=False)
+            image_items.append({"image":file.get("file_url")})
         new_doc.update({
-            "image": file.get("file_url")
+            "image": image_items
         })
         new_doc.save()
         frappe.db.commit()
-    
+
     if generate_text:
         messages = []
         for prompt in prompts:
@@ -214,10 +221,10 @@ def generate_content(**args):
         data = response.json()
         error = data.get("error") or {}
         message = error.get("message") or {}
-    
+
         if response.status_code != 200 and message:
             frappe.msgprint(_(message))
-    
+
         if response.status_code == 200:
             choice = random.choice(data.get("choices"))
             message = choice.get("message").get("tool_calls")[0].get("function").get("arguments")
@@ -236,7 +243,7 @@ def generate_content(**args):
             new_doc.insert()
             frappe.db.commit()
             if len(feed_images) > 0:
-                save_image(random.choice(feed_images))
+                save_image(feed_images)
 
     if generate_image:
         prompt = description if description_to_image and description and len(description) > 0 else ". ".join(prompts) if len(prompts) > 0 else None
@@ -252,20 +259,19 @@ def generate_content(**args):
             "style": style, # Must be "natural" or "vivid"
             "n": 1
         }
-        
+
         response = client.request(endpoint="/v1/images/generations", data=data)
         data = response.json()
         error = data.get("error") or {}
         message = error.get("message") or {}
-        
+
         if response.status_code != 200 and message:
             frappe.msgprint(_(message))
-    
+
         if response.status_code == 200:
             data = random.choice(data.get("data"))
             save_image(data.get("url"))
-            
-    
+
     if generate_image_variation:
         image = frappe.get_doc("File", random.choice(images).image)
         file = frappe.utils.file_manager.get_file(image.file_name)
@@ -274,7 +280,7 @@ def generate_content(**args):
 
         content = to_png(file_content)
         files = {'image': content}
-        
+
         data = {
             "model": "dall-e-2",
             "image": content,
@@ -290,11 +296,11 @@ def generate_content(**args):
 
         if response.status_code != 200 and message:
             frappe.msgprint(_(message))
-        
+
         if response.status_code == 200:
             data = random.choice(data.get("data"))
             save_image(data.get("url"))
-    
+
     return new_doc if new_doc.name else True
 
 

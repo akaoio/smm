@@ -1,5 +1,6 @@
 import copy
 import datetime
+import random
 
 import frappe
 from frappe import _
@@ -365,7 +366,7 @@ def cast(**args):
     doc = frappe.get_doc("Network Activity", name)
     if doc.status != "Pending":
         return
-    
+
     agent = frappe.get_doc("Agent", utils.find(args, "agent") or doc.agent)
     provider = agent.provider
 
@@ -379,9 +380,9 @@ def cast(**args):
     content = frappe.get_doc("Content", content) if content else None
     if not content:
         return
-    
+
     text = utils.remove_quotes(content.description)
-    
+
     clients = {
         "Telegram Bot": telegrambot,
         "X": x
@@ -394,9 +395,24 @@ def cast(**args):
         "text": text,
         "type": doc.type,
     }
+    if content.get("image"):
+        items = content.image
+        image_path = (
+            utils.get_absolute_path(random.choice(items).image)
+            if len(items) > 1 and provider != "Telegram Bot"
+            else utils.get_absolute_path(items[0].image)
+        )
 
-    if content.get("image") is not None:
-        params.update({"image_path": utils.get_absolute_path(content.image)})
+        if provider == "Telegram Bot" and len(items) > 1:
+            params.update(
+                {
+                    "media_item_paths": [
+                        utils.get_absolute_path(item.image) for item in items
+                    ]
+                }
+            )
+        else:
+            params.update({"image_path": image_path})
 
     if linked_external_id:
         params.update({"linked_external_id": linked_external_id})
@@ -421,7 +437,11 @@ def cast(**args):
         if provider == "X":
             external_id = data.get("data").get("id")
         elif provider == "Telegram Bot":
-            external_id = data.get("result").get("message_id")
+            result = data.get("result")
+            if isinstance(result,list):
+                external_id = result[0].get("media_group_id")
+            else:
+                external_id = data.get("result").get("message_id")
         if external_id:
             doc.update({"external_id": external_id})
     else:

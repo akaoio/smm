@@ -1,3 +1,5 @@
+import json
+from typing import List
 from urllib.parse import urlencode
 
 import frappe
@@ -55,6 +57,28 @@ class TelegramBot:
             endpoint="/sendPhoto", headers={}, data=payload, files=files)
         return response
 
+    def send_photo_group(
+        self, chat_id: str, text: str, media_item_paths: List[str], extra_payload={}
+    ):
+        """
+        Send media group to group/channel with images. Required: 2-10 items.
+        Now "text" is caption of image.
+        """
+        payload = {"chat_id": chat_id, "media": []}
+        payload.update(extra_payload)
+        files = []
+        for idx, media_path in enumerate(media_item_paths):
+            payload["media"].append({"type": "photo", "media": f"attach://file{idx}"})
+            files.append(
+                (f"file{idx}", (media_path, open(media_path, "rb"), "image/png"))
+            )
+        payload["media"][0]["caption"] = text
+        payload["media"] = json.dumps(payload["media"])
+        response = self.request(
+            endpoint="/sendMediaGroup", headers={}, data=payload, files=files
+        )
+        return response
+
 
 @frappe.whitelist()
 def profile(**args):
@@ -107,6 +131,7 @@ def send(**args):
     agent = utils.find(args, "agent") or frappe.get_doc("Agent", name)
     text = utils.find(args, "text")
     image_path = utils.find(args, "image_path")
+    media_item_paths = utils.find(args, "media_item_paths")
     api = frappe.get_doc("API", agent.get("api"))
     token = api.get_password("token") or None
     alias = agent.get("alias")
@@ -121,10 +146,12 @@ def send(**args):
     params = {"chat_id": chat_id, "text": text}
 
     if linked_external_id:
-        params.update(
-            {"extra_payload":{"reply_to_message_id": linked_external_id}}
-        )
-    if image_path:
+        params.update({"extra_payload": {"reply_to_message_id": linked_external_id}})
+
+    if media_item_paths:
+        params["media_item_paths"] = media_item_paths
+        response = client.send_photo_group(**params)
+    elif image_path:
         params["image_path"] = image_path
         response = client.send_photo(**params)
     else:

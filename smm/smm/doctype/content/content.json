@@ -10,8 +10,7 @@
   "title",
   "description",
   "length",
-  "image",
-  "image_preview"
+  "image"
  ],
  "fields": [
   {
@@ -43,20 +42,14 @@
   },
   {
    "fieldname": "image",
-   "fieldtype": "Attach Image",
-   "label": "Image"
-  },
-  {
-   "fieldname": "image_preview",
-   "fieldtype": "Image",
-   "is_virtual": 1,
-   "label": "Image Preview",
-   "options": "image"
+   "fieldtype": "Table",
+   "label": "Images",
+   "options": "Content Image Item"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-12-19 10:32:52.283631",
+ "modified": "2024-09-18 18:47:37.727033",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Content",
