@@ -28,9 +28,9 @@ def fetch(**args):
                 "image": image,
             }
         )
-    except Exception:
+    except Exception as e:
         frappe.msgprint(_("Error fetching feeds from {0}").format(url))
-        return
+        raise e
 
     # Must return in this format
     return {"payload": {"url": url}, "response": None, "feeds": feeds}
