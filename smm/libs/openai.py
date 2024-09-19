@@ -251,7 +251,7 @@ def generate_content(**args):
             frappe.msgprint(_("Prompt is required to generate image."))
             pass
         data = {
-            "model": "dall-e-2",
+            "model": "dall-e-3",
             "prompt": prompt,
             "response_format": "url", # Must be "url" or "b64_json"
             "size": size, # 256x256, 512x512, 1024x1024
@@ -282,7 +282,7 @@ def generate_content(**args):
         files = {'image': content}
 
         data = {
-            "model": "dall-e-2",
+            "model": "dall-e-3",
             "image": content,
             "response_format": "url", # Must be "url" or "b64_json"
             "size": size, # 256x256, 512x512, 1024x1024
