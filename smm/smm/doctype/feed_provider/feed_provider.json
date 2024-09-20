@@ -41,13 +41,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "url",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "URL",
-   "reqd": 1
-  },
-  {
    "fieldname": "fetched",
    "fieldtype": "Datetime",
    "in_filter": 1,
@@ -156,6 +149,13 @@
    "fieldname": "customize_crawler",
    "fieldtype": "Section Break",
    "label": "Customize crawler"
+  },
+  {
+   "fieldname": "url",
+   "fieldtype": "Table",
+   "label": "URLs",
+   "options": "Feed Provider URL Item",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -165,7 +165,7 @@
    "link_fieldname": "provider"
   }
  ],
- "modified": "2024-09-15 21:15:50.895158",
+ "modified": "2024-09-20 12:37:59.187429",
  "modified_by": "Administrator",
  "module": "SMM",
  "name": "Feed Provider",
@@ -184,7 +184,7 @@
    "write": 1
   }
  ],
- "search_fields": "title,url",
+ "search_fields": "title",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
