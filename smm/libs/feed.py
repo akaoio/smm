@@ -1,5 +1,6 @@
 import base64
 import json
+import random
 
 import frappe
 from frappe import _
@@ -20,7 +21,7 @@ feed_provider_locale = _("Feed Provider")
 def fetch(**args):
     name = utils.find(args, "name")
     method = "fetch"
-    
+
     if not name:
         msg = _("{0} name is empty").format(feed_provider_locale)
         frappe.msgprint(msg)
@@ -46,7 +47,10 @@ def fetch(**args):
         return
     
     # Must returns {payload, response, feeds}
-    process = getattr(client, method)(**doc.as_dict())
+    payload = doc.as_dict()
+    url_item = random.choice(doc.url)
+    payload["url"] = url_item.url
+    process = getattr(client, method)(**payload)
     if process:
         if process.get("payload") and process.get("response"):
             response = process.get("response")
