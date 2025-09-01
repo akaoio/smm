@@ -1,15 +1,15 @@
 test generate image var
-bench --site erp.mimiza.com execute smm.libs.openai.generate_content --kwargs '{"name":"09add3d230"}'
+bench --site [site_name] execute smm.libs.openai.generate_content --kwargs '{"name":"[mechanism_id]"}'
 
 
 test generate image from prompts
-bench --site erp.mimiza.com execute smm.libs.openai.generate_content --kwargs '{"name":"fb46777035"}'
+bench --site [site_name] execute smm.libs.openai.generate_content --kwargs '{"name":"[mechanism_id]"}'
 
 test generate text --> image
-bench --site erp.mimiza.com execute smm.libs.openai.generate_content --kwargs '{"name":"b98ff6e4aa"}'
+bench --site [site_name] execute smm.libs.openai.generate_content --kwargs '{"name":"[mechanism_id]"}'
 
 test upload media
-bench --site erp.mimiza.com execute smm.libs.activity.cast --kwargs '{"name":"8d15df4ad5"}'
+bench --site [site_name] execute smm.libs.activity.cast --kwargs '{"name":"[activity_id]"}'
 
 test request
-bench --site erp.mimiza.com execute smm.libs.x.test
+bench --site [site_name] execute smm.libs.x.test

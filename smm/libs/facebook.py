@@ -9,28 +9,34 @@ import os
 from urllib.parse import urlencode
 from . import utils
 
-# FACEBOOK MODULE IS UNDER DEVELOPMENT, THIS IS A COPY OF X.PY AND MANY PARTS ARE NOT IMPLEMENTED YET
-# READ THIS DOC: https://developers.facebook.com/docs/facebook-login/guides/advanced/manual-flow
+# Facebook Graph API integration for posting content
+# Docs: https://developers.facebook.com/docs/graph-api/
+# Pages API: https://developers.facebook.com/docs/pages-api/
 
 class Facebook:
     def __init__(self, client_id=None, client_secret=None, redirect_uri=None, access_token=None, refresh_token=None, scope=[], authorization_type="Bearer", content_type="json"):
         self.base_url = "https://graph.facebook.com"
-        self.auth_url = "https://graph.facebook.com/oauth/authorize"
+        self.auth_url = "https://www.facebook.com/v18.0/dialog/oauth"
         self.client_id = client_id
         self.client_secret = client_secret
-        self.scope = scope or ["openid", "public_profile", "email", "pages_manage_posts", "pages_manage_engagement", "publish_to_groups", "publish_video"]
+        self.scope = scope or ["public_profile", "email", "pages_show_list", "pages_manage_posts", "pages_manage_engagement", "pages_read_engagement", "publish_to_groups", "publish_video"]
         self.access_token = access_token
         self.refresh_token = refresh_token
         self.authorization_type = authorization_type
         self.content_type = content_type
         self.state = None
-        config = frappe.get_site_config() or {}
-        domains = config.get("domains") or []
-        protocol = "https" if config.get("ssl_certificate") else "http"
-
-        # Check if frappe.local.request.host exists
-        host = getattr(getattr(frappe.local, "request", {}), "host", "")
-        self.redirect_uri = redirect_uri or ("https://skedew.com/redirect" if host == "localhost:8000" else f"{protocol}://{host or domains[0]}/api/method/smm.libs.facebook.callback")
+        # Use Frappe's proper API to get site URL
+        from frappe.utils import get_url
+        try:
+            # Get base site URL and construct callback
+            site_url = get_url().rstrip("//")
+            self.redirect_uri = redirect_uri or f"{site_url}/api/method/smm.libs.facebook.callback"
+        except:
+            # Fallback to request host if get_url() fails
+            config = frappe.get_site_config() or {}
+            protocol = "https" if config.get("ssl_certificate") else "http"
+            host = getattr(getattr(frappe.local, "request", {}), "host", "localhost")
+            self.redirect_uri = redirect_uri or f"{protocol}://{host}/api/method/smm.libs.facebook.callback"
 
     def bearer(self):
         return f"Bearer {self.access_token}"
@@ -89,11 +95,8 @@ class Facebook:
             "response_type": "code",
             "client_id": self.client_id,
             "redirect_uri": redirect_uri or self.redirect_uri,
-            "scope": " ".join(scope),
-            "state": state,
-            "code_challenge": code_challenge,
-            "code_challenge_method": code_challenge_method,
-            "nonce": self.verifier()
+            "scope": ",".join(scope),
+            "state": state
         }
 
         url = self.request("GET", url=self.auth_url, params=params, request=False)
@@ -102,41 +105,35 @@ class Facebook:
 
     # Get access token from code
     def token(self, code_verifier=None, code=None, redirect_uri=None):
-        if not code_verifier or not code:
+        if not code:
             return
 
         return self.request(
             "POST",
-            endpoint="/oauth/access_token",
+            endpoint="/v18.0/oauth/access_token",
             params={
                 "grant_type": "authorization_code",
                 "code": code,
                 "client_id": self.client_id,
-                "code_verifier": code_verifier,
+                "client_secret": self.client_secret,
                 "redirect_uri": redirect_uri or self.redirect_uri
-            },
-            headers={
-                "authorization_type": "Basic",
-                "content_type": "urlencoded"
             }
         )
 
-    # Refresh access token
-    def refresh_access_token(self, token=None):
-        token = token or self.refresh_token
+    # Exchange short-lived token for long-lived token
+    def exchange_long_lived_token(self, short_token=None):
+        token = short_token or self.access_token
         if not token:
             return
 
         return self.request(
-            "POST",
-            endpoint="/oauth/access_token",
+            "GET",
+            endpoint="/v18.0/oauth/access_token",
             params={
-                "grant_type": "refresh_token",
-                "refresh_token": token,
-            },
-            headers={
-                "authorization_type": "Basic",
-                "content_type": "urlencoded"
+                "grant_type": "fb_exchange_token",
+                "client_id": self.client_id,
+                "client_secret": self.client_secret,
+                "fb_exchange_token": token
             }
         )
 
@@ -234,35 +231,41 @@ def callback(**args):
     return args
 
 
-# @frappe.whitelist()
-# def refresh_access_token(**args):
-#     name = utils.find(args, "name")
-#     if not name:
-#         frappe.msgprint(_("{0} name is empty").format(_("Agent")))
-#         return
+@frappe.whitelist()
+def refresh_access_token(**args):
+    name = utils.find(args, "name")
+    if not name:
+        frappe.msgprint(_("{0} name is empty").format(_("Agent")))
+        return
 
-#     doc = frappe.get_doc("Agent", name)
-#     token = doc.get_password("refresh_token") or None
-#     api = doc.get("api")
-#     doc = frappe.get_doc("API", api)
-#     client_id = doc.get_password("client_id") or None
-#     client_secret = doc.get_password("client_secret") or None
+    doc = frappe.get_doc("Agent", name)
+    token = doc.get_password("access_token")
+    api_doc = frappe.get_doc("API", doc.api)
+    client_id = api_doc.get_password("client_id")
+    client_secret = api_doc.get_password("client_secret")
 
-#     if not client_id or not client_secret:
-#         frappe.msgprint(_("Client ID or Client Secret or both not found"))
-#         return
+    if not client_id or not client_secret or not token:
+        frappe.msgprint(_("Missing credentials for token refresh"))
+        return
 
-#     client = Facebook(client_id, client_secret)
+    client = Facebook(client_id=client_id, client_secret=client_secret)
+    
+    # Exchange for long-lived token (Facebook tokens expire in 60 days)
+    response = client.exchange_long_lived_token(token)
+    
+    if response and response.status_code == 200:
+        response_data = response.json()
+        new_token = response_data.get("access_token")
+        if new_token:
+            doc.set_password("access_token", new_token)
+            doc.save()
+            frappe.db.commit()
+            
+            # Also refresh page token if exists
+            if doc.get_password("page_access_token"):
+                profile(name=name)  # Re-fetch page tokens
 
-#     response = client.refresh_access_token(token)
-
-#     if response.status_code == 200:
-#         response = response.json()
-#         access_token, refresh_token = response.get("access_token"), response.get("refresh_token")
-#         frappe.get_doc("Agent", name).update({"access_token": access_token, "refresh_token": refresh_token}).save()
-#         frappe.db.commit()
-
-#     return token
+    return response
 
 
 @frappe.whitelist()
@@ -286,7 +289,17 @@ def profile(**args):
     #     public_metrics = profile.get("public_metrics") or {}
     #     audience_size = public_metrics.get("followers_count") if public_metrics.get("followers_count") else None
     
-    frappe.get_doc("Agent", name).update({"uid": profile.get("id"), "display_name": profile.get("name")}).save()
+    # Store page ID if available for future posting
+    page_id = None
+    if accounts:
+        page_id = accounts[0].get("id")
+    
+    frappe.get_doc("Agent", name).update({
+        "uid": profile.get("id"), 
+        "display_name": profile.get("name"),
+        "audience_size": audience_size,
+        "page_id": page_id
+    }).save()
 
     frappe.db.commit()
 
@@ -298,24 +311,93 @@ def send(**args):
     name = utils.find(args, "name")
     agent = utils.find(args, "agent") or frappe.get_doc("Agent", name)
     text = utils.find(args, "text")
-    token = agent.get_password("access_token") or None
+    image_path = utils.find(args, "image_path")
+    activity_type = utils.find(args, "type")
+    
+    # Use page access token for posting, fallback to user token
+    token = agent.get_password("page_access_token") or agent.get_password("access_token")
+    if not token:
+        frappe.throw(_("No access token found for Facebook agent"))
+    
     client = Facebook(access_token=token)
-
+    
+    # Determine the posting endpoint based on token type
+    endpoint = "/v18.0/me/feed"  # Default to user feed
+    
+    # Get page ID if using page token
+    if agent.get_password("page_access_token"):
+        # Get page ID from agent or use 'me' for simplicity
+        page_id = agent.get("page_id") or "me"
+        endpoint = f"/v18.0/{page_id}/feed"
+    
+    params = {"message": text}
+    
+    # Handle media upload if image provided
+    if image_path:
+        try:
+            # Upload photo first
+            photo_response = upload_photo(client, image_path, text, agent)
+            if photo_response and photo_response.status_code == 200:
+                return photo_response
+        except Exception as e:
+            frappe.log_error(f"Facebook media upload failed: {str(e)}")
+    
+    # Handle different activity types
     linked_external_id = utils.find(args, "linked_external_id")
-
-    params = {"text": text}
-    if linked_external_id:
-        params.update({
-            "reply": {
-                "in_reply_to_tweet_id": linked_external_id
-            }
-        })
-
+    if linked_external_id and activity_type == "Post Comment":
+        # Facebook doesn't support direct replies like Twitter
+        # Instead, post as a comment on the original post
+        endpoint = f"/v18.0/{linked_external_id}/comments"
+        params = {"message": text}
+    
     response = client.request(
         "POST",
-        endpoint="/2/tweets",
-        json=params,
-        headers={"authorization_type": "Bearer", "content_type": "json"}
+        endpoint=endpoint,
+        params=params,
+        headers={"authorization_type": "Bearer"}
     )
-
+    
     return response
+
+
+def upload_photo(client, image_path, caption="", agent=None):
+    """Upload photo to Facebook"""
+    if image_path.startswith("http"):
+        # Remote URL
+        endpoint = "/v18.0/me/photos"
+        if agent and agent.get_password("page_access_token"):
+            page_id = agent.get("page_id") or "me"
+            endpoint = f"/v18.0/{page_id}/photos"
+            
+        params = {
+            "url": image_path,
+            "caption": caption
+        }
+        return client.request(
+            "POST",
+            endpoint=endpoint,
+            params=params,
+            headers={"authorization_type": "Bearer"}
+        )
+    else:
+        # Local file upload
+        try:
+            endpoint = f"{client.base_url}/v18.0/me/photos"
+            if agent and agent.get_password("page_access_token"):
+                page_id = agent.get("page_id") or "me"
+                endpoint = f"{client.base_url}/v18.0/{page_id}/photos"
+                
+            with open(image_path, 'rb') as image_file:
+                files = {'source': image_file}
+                params = {'message': caption}
+                
+                response = requests.post(
+                    endpoint,
+                    files=files,
+                    data=params,
+                    headers={"Authorization": client.bearer()}
+                )
+                return response
+        except Exception as e:
+            frappe.log_error(f"Failed to upload Facebook photo: {str(e)}")
+            return None

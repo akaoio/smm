@@ -35,13 +35,18 @@ refresh_token=None, scope=[], authorization_type=None, content_type=None, versio
         self.authorization_type = authorization_type
         self.content_type = content_type
         self.state = None
-        config = frappe.get_site_config() or {}
-        domains = config.get("domains") or []
-        protocol = "https" if config.get("ssl_certificate") else "http"
-
-        # Check if frappe.local.request.host exists
-        host = getattr(getattr(frappe.local, "request", {}), "host", "")
-        self.redirect_uri = redirect_uri or ("https://skedew.com/redirect" if host == "localhost:8000" else f"{protocol}://{host or domains[0]}/api/method/smm.libs.x.callback")
+        # Use Frappe's proper API to get site URL
+        from frappe.utils import get_url
+        try:
+            # Get base site URL and construct callback
+            site_url = get_url().rstrip('/')
+            self.redirect_uri = redirect_uri or f"{site_url}/api/method/smm.libs.x.callback"
+        except:
+            # Fallback to request host if get_url() fails
+            config = frappe.get_site_config() or {}
+            protocol = "https" if config.get("ssl_certificate") else "http"
+            host = getattr(getattr(frappe.local, "request", {}), "host", "localhost")
+            self.redirect_uri = redirect_uri or f"{protocol}://{host}/api/method/smm.libs.x.callback"
 
     def bearer(self):
         return f"Bearer {self.access_token}"
@@ -598,7 +603,7 @@ def send(**args):
 # This function requires a paid API subscription
 @frappe.whitelist()
 def fetch(**args):
-    # bench --site erp.mimiza.com execute smm.libs.x.fetch --kwargs '{"keyword":"bitcoin","api":"2578e8f666"}'
+    # bench --site [site_name] execute smm.libs.x.fetch --kwargs '{"keyword":"bitcoin","api":"[api_id]"}'
     name = utils.find(args, "name")
     keyword = utils.find(args, "keyword")
     # agent = frappe.get_doc("Agent", name or utils.find(args, "agent"))

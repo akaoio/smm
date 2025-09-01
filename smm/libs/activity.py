@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.utils import get_site_name
 
-from . import openai, telegrambot, utils, x
+from . import facebook, openai, telegrambot, utils, x
 
 # Based on the type of Network Activity, the required fields are different
 requirements = {
@@ -385,7 +385,8 @@ def cast(**args):
 
     clients = {
         "Telegram Bot": telegrambot,
-        "X": x
+        "X": x,
+        "Facebook": facebook
     }
     client = clients.get(provider)
 
@@ -442,6 +443,8 @@ def cast(**args):
                 external_id = result[0].get("media_group_id")
             else:
                 external_id = data.get("result").get("message_id")
+        elif provider == "Facebook":
+            external_id = data.get("id") or data.get("post_id")
         if external_id:
             doc.update({"external_id": external_id})
     else:
